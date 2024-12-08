@@ -52,19 +52,22 @@ module.exports = async function createServer(type, port) {
     // apiRoutes
     app.use('/api', apiRoutes);
 
-    // Start the server
-    app.listen(port, () => {
+    // Start the server and store it in a variable
+    const server = app.listen(port, () => {
         logger.notice(`Starting in ${type} mode. Listening on http://localhost:${port}/health`);
     });
 
+    // Graceful shutdown
+    function handleShutdown() {
+        logger.info("Application shutting down...");
+        server.close(() => {
+            logger.info("Server has been shut down gracefully.");
+            process.exit(0); // Exit the process after the server is closed
+        });
+    }
+
+    process.on("SIGINT", handleShutdown); // Handle Ctrl+C
+    process.on("SIGTERM", handleShutdown); // Handle termination signals
+
     return app;
 }
-
-// Graceful shutdown
-function handleShutdown() {
-    logger.info("Application shutting down...");
-    process.exit(0);
-}
-
-process.on("SIGINT", handleShutdown); // Handle Ctrl+C
-process.on("SIGTERM", handleShutdown); // Handle termination signals

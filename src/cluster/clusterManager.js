@@ -13,7 +13,7 @@ function start(withCluster = process.env.NODE_ENV == 'production', service) {
     const logger = require("../helpers/logger");
     const createServer = require("./createServer")
 
-    const basePort = process.env.BASE_PORT ? parseInt(process.env.BASE_PORT, 10) : 50000;
+    const basePort = process.env.BASE_PORT ? parseInt(process.env.BASE_PORT, 10) : 53100;
     // # Default number of workers: 
     // # If the WORKER_COUNT environmental variable is not defined,
     // # the system automatically starts numCPUs (number of CPUs available) workers.
