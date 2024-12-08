@@ -7,7 +7,7 @@ const logger = require('../helpers/logger');
 
 const { events, listenMessage } = require('../utils/messaging');
 
-const { eventTask } = require("../events/eventTask");
+const { eventFunction } = require("../events/eventFunction");
 
 const async = require('async');
 // Get the concurrent parallel limit from the environment variable, default to 5 if not set
@@ -28,7 +28,7 @@ async function start() {
     const eventName = events.task;
 
     // Listen to incoming data source requests
-    await listenMessage(eventName, eventTask);
+    await listenMessage(eventName, eventFunction);
 
     logger.info(`Listener started on event: ${eventName}`);
 

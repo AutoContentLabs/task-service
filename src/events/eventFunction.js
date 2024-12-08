@@ -1,5 +1,5 @@
 /**
- * @file src/events/eventTask.js
+ * @file src/events/eventFunction.js
  * @description Event Task
  */
 const logger = require('../helpers/logger');
