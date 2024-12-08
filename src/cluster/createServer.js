@@ -46,6 +46,9 @@ module.exports = async function createServer(type, port) {
         }
     });
 
+    // web root
+    app.use(express.static(require("path").join(__dirname, '../../example')));
+
     // apiRoutes
     app.use('/api', apiRoutes);
 
