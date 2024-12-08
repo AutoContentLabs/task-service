@@ -1,4 +1,5 @@
 const express = require('express');
+const taskRoutes = require('./taskRoutes');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -14,5 +15,7 @@ router.get('/', async (req, res) => {
     // response
     return result
 });
+
+router.use(taskRoutes)
 
 module.exports = router;

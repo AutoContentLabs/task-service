@@ -63,6 +63,7 @@ function start(withCluster = process.env.NODE_ENV == 'production', service) {
         }
     } else {
         // Single process mode (for production or non-clustered environments)
+        createServer("single", basePort);
         service.start();
     }
 }
