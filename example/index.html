@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Fetch Example</title>
+</head>
+<body>
+  <h1>Task Management</h1>
+  
+  <h2>Create Task</h2>
+  <form id="createTaskForm">
+    <input type="text" id="taskName" placeholder="Task Name" required>
+    <input type="text" id="taskDescription" placeholder="Task Description" required>
+    <button type="submit">Create Task</button>
+  </form>
+  
+  <h2>Get All Tasks</h2>
+  <button id="getTasksBtn">Get Tasks</button>
+  <ul id="taskList"></ul>
+  
+  <h2>Update Task</h2>
+  <form id="updateTaskForm">
+    <input type="text" id="updateTaskId" placeholder="Task ID" required>
+    <input type="text" id="updateTaskStatus" placeholder="New Status" required>
+    <button type="submit">Update Task</button>
+  </form>
+
+  <h2>Delete Task</h2>
+  <form id="deleteTaskForm">
+    <input type="text" id="deleteTaskId" placeholder="Task ID to delete" required>
+    <button type="submit">Delete Task</button>
+  </form>
+
+  <script src="script.js"></script>
+</body>
+</html>
