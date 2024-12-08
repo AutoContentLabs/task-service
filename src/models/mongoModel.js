@@ -53,17 +53,21 @@ const task = {
 }
 
 // Task schema definition
+task.type.default = "TASK"
 const taskSchema = new mongoose.Schema({
     ...task
 }, { timestamps: true });
 
 // Workflow schema
+task.type.default = "WORKFLOW"
 const workflowSchema = new mongoose.Schema({
     ...task,
     steps: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }] // Referencing tasks instead of embedding them
 }, { timestamps: true });
 
+
 // Pipeline schema
+task.type.default = "PIPELINE"
 const pipelineSchema = new mongoose.Schema({
     ...task,
     steps: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Workflow' }] // Referencing workflows instead of embedding them
