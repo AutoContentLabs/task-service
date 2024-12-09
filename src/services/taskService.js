@@ -3,29 +3,29 @@ const { TaskEngine } = require('../orchestrator');
 const taskRepository = require('../repositories/taskRepository');
 
 class TaskService {
-    async createTask(taskData) {
-        return await taskRepository.createTask(taskData);
+    async create(model) {
+        return await taskRepository.create(model);
     }
 
-    async getTaskById(taskId) {
-        return await taskRepository.getTaskById(taskId);
+    async update(id, model) {
+        return await taskRepository.update(taskId, updateData);
     }
 
-    async getAllTasks() {
-        return await taskRepository.getAllTasks();
+    async deleteById(id) {
+        return await taskRepository.deleteById(id);
     }
 
-    async updateTask(taskId, updateData) {
-        return await taskRepository.updateTask(taskId, updateData);
+    async getById(id) {
+        return await taskRepository.getById(id);
     }
 
-    async deleteTask(taskId) {
-        return await taskRepository.deleteTask(taskId);
+    async getAll() {
+        return await taskRepository.getAll();
     }
 
-    async startTask(taskId) {
+    async start(id) {
 
-        const task = await this.getTaskById(taskId);
+        const task = await this.getTaskById(id);
         if (!task) {
             return null
         }
@@ -38,39 +38,17 @@ class TaskService {
             details: 'Task started via API'
         });
 
-        const result = this.updateTask(taskId, task)
-        
+        const result = this.updateTask(id, task)
+
         // Task Engine
         new TaskEngine(task)
-        
-        return result;
-    }
-
-    
-
-    async pauseTask(taskId) {
-
-        const task = await this.getTaskById(taskId);
-        if (!task) {
-            return null
-        }
-
-        task.status = 'PAUSED';
-
-        task.actions.push({
-            type: 'PAUSE',
-            timestamp: new Date(),
-            details: 'Task paused via API'
-        });
-
-        const result = this.updateTask(taskId, task)
 
         return result;
     }
 
-    async stopTask(taskId) {
+    async stop(id) {
 
-        const task = await this.getTaskById(taskId);
+        const task = await this.getTaskById(id);
         if (!task) {
             return null
         }
@@ -83,10 +61,68 @@ class TaskService {
             details: 'Task stopped via API'
         });
 
-        const result = this.updateTask(taskId, task)
+        const result = this.updateTask(id, task)
 
         return result;
     }
+    async pause(id) {
+
+        const task = await this.getTaskById(id);
+        if (!task) {
+            return null
+        }
+
+        task.status = 'PAUSED';
+
+        task.actions.push({
+            type: 'PAUSE',
+            timestamp: new Date(),
+            details: 'Task paused via API'
+        });
+
+        const result = this.updateTask(id, task)
+
+        return result;
+    }
+
+    async resume(id) {
+        const task = await this.getTaskById(id);
+        if (!task) {
+            return null
+        }
+
+        task.status = 'RESUMED';
+
+        task.actions.push({
+            type: 'RESUME',
+            timestamp: new Date(),
+            details: 'Task resumed via API'
+        });
+
+        const result = this.updateTask(id, task)
+
+        return result;
+    }
+
+    async restart(id) {
+        const task = await this.getTaskById(id);
+        if (!task) {
+            return null
+        }
+
+        task.status = 'RESTARTED';
+
+        task.actions.push({
+            type: 'RESTART',
+            timestamp: new Date(),
+            details: 'Task resumed via API'
+        });
+
+        const result = this.updateTask(id, task)
+
+        return result;
+    }
+
 }
 
 module.exports = new TaskService();

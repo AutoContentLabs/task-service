@@ -2,73 +2,92 @@
 const taskService = require('../services/taskService');
 
 class TaskController {
-    async createTask(req, res) {
+
+    async create(req, res) {
         try {
-            const newTask = await taskService.createTask(req.body);
+            const newTask = await taskService.create(req.body);
             res.status(201).json(newTask);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async getTaskById(req, res) {
+    async update(req, res) {
         try {
-            const task = await taskService.getTaskById(req.params.id);
-            res.status(200).json(task);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
-
-    async getAllTasks(req, res) {
-        try {
-            const tasks = await taskService.getAllTasks();
-            res.status(200).json(tasks);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
-
-    async updateTask(req, res) {
-        try {
-            const updatedTask = await taskService.updateTask(req.params.id, req.body);
+            const updatedTask = await taskService.update(req.params.id, req.body);
             res.status(200).json(updatedTask);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async deleteTask(req, res) {
+    async deleteById(req, res) {
         try {
-            await taskService.deleteTask(req.params.id);
+            await taskService.deleteById(req.params.id);
             res.status(204).end();
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async startTask(req, res) {
+    async getById(req, res) {
         try {
-            const task = await taskService.startTask(req.params.id);
+            const task = await taskService.getById(req.params.id);
+            res.status(200).json(task);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async getAll(req, res) {
+        try {
+            const tasks = await taskService.getAll();
+            res.status(200).json(tasks);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async start(req, res) {
+        try {
+            const task = await taskService.start(req.params.id);
             res.status(200).json({ message: 'task started successfully', task });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async pauseTask(req, res) {
+    async stop(req, res) {
         try {
-            const task = await taskService.pauseTask(req.params.id);
+            const task = await taskService.stop(req.params.id);
+            res.status(200).json({ message: 'task stopped successfully', task });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async pause(req, res) {
+        try {
+            const task = await taskService.pause(req.params.id);
             res.status(200).json({ message: 'task paused successfully', task });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async stopTask(req, res) {
+    async resume(req, res) {
         try {
-            const task = await taskService.stopTask(req.params.id);
-            res.status(200).json({ message: 'task stopped successfully', task });
+            const task = await taskService.resume(req.params.id);
+            res.status(200).json({ message: 'task resume successfully', task });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async restart(req, res) {
+        try {
+            const task = await taskService.restart(req.params.id);
+            res.status(200).json({ message: 'task restart successfully', task });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

@@ -26,13 +26,17 @@ const task = {
     },
     status: {
         type: String,
-        enum: ['IDLE', 'STARTED', 'PAUSED', 'STOPPED', 'RESUMED', 'IN_PROGRESS'],
+        enum: ['IDLE', 'IN_PROGRESS',
+            'STARTED', 'STOPPED', 'PAUSED', 'RESUMED', 'RESTARTED',],
         default: 'IDLE'
     },
     actions: [{
         type: {
             type: String,
-            enum: ['START', 'STOP', 'PAUSE', 'RESUME'],
+            enum: [
+                'CREATE', 'DELETE', 'UPDATE', 'GET', 'GET_ALL',
+                'START', 'STOP', 'PAUSE', 'RESUME', 'RESTART'
+            ],
             required: true
         },
         timestamp: { type: Date, default: Date.now },

@@ -4,7 +4,7 @@
  */
 const logger = require('../helpers/logger');
 const { handleFunction, sendMessage } = require('../utils/messaging');
-const taskService = require('../services/taskService');
+const { create, update, deleteById, getById, getAll, start, stop, pause, resume, restart } = require('../services/taskService');
 /**
  * Handles request events.
  * @param {Object} pair - The processed data source object.
@@ -30,15 +30,39 @@ async function eventFunction(pair) {
   try {
 
     switch (action) {
-      case 'START':
-        response = await taskService.startTask(id)
+      case 'CREATE':
+        response = await create(model)
         break;
-      case 'PAUSE':
-        response = await taskService.pauseTask(id)
+
+      case 'UPDATE':
+        response = await update(id, model)
+        break;
+      case 'DELETE':
+        response = await deleteById(id)
+        break;
+      case 'GET':
+        response = await getById(id)
+        break;
+      case 'GET_ALL':
+        response = await getAll()
+        break;
+        
+      case 'START':
+        response = await start(id)
         break;
       case 'STOP':
-        response = await taskService.stopTask(id)
+        response = await stop(id)
         break;
+      case 'PAUSE':
+        response = await pause(id)
+        break;
+      case 'RESUME':
+        response = await resume(id)
+        break;
+      case 'RESTART':
+        response = await restart(id)
+        break;
+
       default:
         console.log('Unknown action:', action);
         return;
