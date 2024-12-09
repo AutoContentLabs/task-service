@@ -103,6 +103,7 @@
           if (response.ok) {
             getTasks(); // Refresh the task list
           } else {
+            console.error("Error creating task:", data);
           }
         } catch (error) {
           console.error("Error creating task:", error);
@@ -120,13 +121,15 @@
           tasks.forEach((task) => {
             const listItem = document.createElement("li");
             listItem.innerHTML = `
-          <strong>${task.name}</strong> - ${task.state} - ${task.status} 
-          <div class="actions-container">
-            <button onclick="startTask('${task._id}')">Start</button>
-            <button onclick="pauseTask('${task._id}')">Pause</button>
-            <button onclick="stopTask('${task._id}')">Stop</button>
-          </div>
-        `;
+              <strong>${task.name}</strong> - ${task.state} - ${task.status} 
+              <div class="actions-container">
+                <button onclick="startTask('${task._id}')">Start</button>
+                <button onclick="pauseTask('${task._id}')">Pause</button>
+                <button onclick="stopTask('${task._id}')">Stop</button>
+                <button onclick="resumeTask('${task._id}')">Resume</button>
+                <button onclick="restartTask('${task._id}')">Restart</button>
+              </div>
+            `;
             taskList.appendChild(listItem);
           });
         } catch (error) {
@@ -144,6 +147,7 @@
           if (response.ok) {
             getTasks(); // Refresh the task list
           } else {
+            alert(`Error: ${data.message}`);
           }
         } catch (error) {
           console.error("Error starting task:", error);
@@ -177,9 +181,44 @@
           if (response.ok) {
             getTasks(); // Refresh the task list
           } else {
+            alert(`Error: ${data.message}`);
           }
         } catch (error) {
           console.error("Error stopping task:", error);
+        }
+      };
+
+      // Resume Task
+      const resumeTask = async (taskId) => {
+        try {
+          const response = await fetch(`${apiUrl}/${taskId}/resume`, {
+            method: "POST",
+          });
+          const data = await response.json();
+          if (response.ok) {
+            getTasks(); // Refresh the task list
+          } else {
+            alert(`Error: ${data.message}`);
+          }
+        } catch (error) {
+          console.error("Error resuming task:", error);
+        }
+      };
+
+      // Restart Task
+      const restartTask = async (taskId) => {
+        try {
+          const response = await fetch(`${apiUrl}/${taskId}/restart`, {
+            method: "POST",
+          });
+          const data = await response.json();
+          if (response.ok) {
+            getTasks(); // Refresh the task list
+          } else {
+            alert(`Error: ${data.message}`);
+          }
+        } catch (error) {
+          console.error("Error restarting task:", error);
         }
       };
 

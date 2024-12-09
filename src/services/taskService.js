@@ -99,7 +99,7 @@ class TaskService {
             details: 'resumed via API'
         });
 
-        const result = this.update(id, task)
+        const result = this.update(id, model)
 
         return result;
     }

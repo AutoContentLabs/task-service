@@ -11,7 +11,7 @@ router.get('/tasks', getAll);
 router.post('/tasks/:id/start', start);
 router.post('/tasks/:id/stop', stop);
 router.post('/tasks/:id/pause', pause);
-router.post('/tasks/:id/pause', resume);
-router.post('/tasks/:id/pause', restart);
+router.post('/tasks/:id/resume', resume);
+router.post('/tasks/:id/restart', restart);
 
 module.exports = router;
