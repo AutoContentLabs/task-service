@@ -3,7 +3,7 @@
  * @description Event Task
  */
 const logger = require('../helpers/logger');
-const { handleFunction, sendMessage } = require('../utils/messaging');
+const { handleFunction, sendResponse } = require('../utils/messaging');
 const { create, update, deleteById, getById, getAll, start, stop, pause, resume, restart } = require('../services/taskService');
 /**
  * Handles request events.
@@ -16,17 +16,18 @@ const { create, update, deleteById, getById, getAll, start, stop, pause, resume,
 async function eventFunction(pair) {
   const { key, value, headers } = pair
 
-  if (!key && !value) {
-    logger.error("No key and value found in the message");
+  if (!key && !value && !headers) {
+    logger.error("No key, value, headers found in the message");
     return;
   }
 
-  const id = key.recordId
-  const action = key.action
-  const model = await handleFunction({ key, value, headers });
-
-  let response;
   try {
+
+    const id = key.recordId
+    const action = key.action
+    const model = await handleFunction({ key, value, headers });
+
+    let response;
 
     switch (action) {
       case 'CREATE':
@@ -67,7 +68,8 @@ async function eventFunction(pair) {
         return;
     }
 
-    const result = await sendMessage("TASK_EVENT", { value: response, headers })
+    key.status = response.status
+    const result = await sendResponse({ key, value: response, headers })
 
     logger.info(`message sent ${headers.correlationId} - ${result}`)
   } catch (error) {

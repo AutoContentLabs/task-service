@@ -35,16 +35,21 @@ async function send(event, providedPair) {
         throw new Error(`Failed to send message for event: ${event}`);
     }
 }
-
+async function sendResponse({ key, value, headers }) {
+    const result = await sendMessage(events.task_event, { key, value, headers })
+    return result;
+}
 async function handleFunction({ key, value, headers }) {
     return value
 }
-
+const events = {
+    tasks: "tasks",
+    task_event: "task_event"
+}
 module.exports = {
-    events: {
-        tasks: "tasks"
-    },
+    events,
     sendMessage: send,
+    sendResponse,
     listenMessage: listen,
     handleFunction
 };
