@@ -8,7 +8,7 @@ class TaskService {
     }
 
     async update(id, model) {
-        return await taskRepository.update(taskId, updateData);
+        return await taskRepository.update(id, model);
     }
 
     async deleteById(id) {
@@ -25,100 +25,100 @@ class TaskService {
 
     async start(id) {
 
-        const task = await this.getTaskById(id);
-        if (!task) {
+        const model = await this.getById(id);
+        if (!model) {
             return null
         }
 
-        task.status = 'STARTED';
+        model.status = 'STARTED';
 
-        task.actions.push({
+        model.actions.push({
             type: 'START',
             timestamp: new Date(),
-            details: 'Task started via API'
+            details: 'started via API'
         });
 
-        const result = this.updateTask(id, task)
+        const result = this.update(id, model)
 
         // Task Engine
-        new TaskEngine(task)
+        new TaskEngine(model)
 
         return result;
     }
 
     async stop(id) {
 
-        const task = await this.getTaskById(id);
-        if (!task) {
+        const model = await this.getById(id);
+        if (!model) {
             return null
         }
 
-        task.status = 'STOPPED';
+        model.status = 'STOPPED';
 
-        task.actions.push({
+        model.actions.push({
             type: 'STOP',
             timestamp: new Date(),
-            details: 'Task stopped via API'
+            details: 'stopped via API'
         });
 
-        const result = this.updateTask(id, task)
+        const result = this.update(id, model)
 
         return result;
     }
     async pause(id) {
 
-        const task = await this.getTaskById(id);
-        if (!task) {
+        const model = await this.getById(id);
+        if (!model) {
             return null
         }
 
-        task.status = 'PAUSED';
+        model.status = 'PAUSED';
 
-        task.actions.push({
+        model.actions.push({
             type: 'PAUSE',
             timestamp: new Date(),
-            details: 'Task paused via API'
+            details: 'paused via API'
         });
 
-        const result = this.updateTask(id, task)
+        const result = this.update(id, model)
 
         return result;
     }
 
     async resume(id) {
-        const task = await this.getTaskById(id);
-        if (!task) {
+        const model = await this.getById(id);
+        if (!model) {
             return null
         }
 
-        task.status = 'RESUMED';
+        model.status = 'RESUMED';
 
-        task.actions.push({
+        model.actions.push({
             type: 'RESUME',
             timestamp: new Date(),
-            details: 'Task resumed via API'
+            details: 'resumed via API'
         });
 
-        const result = this.updateTask(id, task)
+        const result = this.update(id, task)
 
         return result;
     }
 
     async restart(id) {
-        const task = await this.getTaskById(id);
-        if (!task) {
+        const model = await this.getById(id);
+        if (!model) {
             return null
         }
 
-        task.status = 'RESTARTED';
+        model.status = 'RESTARTED';
 
-        task.actions.push({
+        model.actions.push({
             type: 'RESTART',
             timestamp: new Date(),
             details: 'Task resumed via API'
         });
 
-        const result = this.updateTask(id, task)
+        const result = this.update(id, model)
 
         return result;
     }

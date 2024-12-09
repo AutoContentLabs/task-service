@@ -1,20 +1,28 @@
+/**
+ * @file src\repositories\taskRepository.js
+ */
 const { Task } = require('../models/mongoModel');
 
 class TaskRepository {
-    async create(data) {
-        return await Task.create(data);
+    /**
+     * 
+     * @param {Task} model 
+     * @returns 
+     */
+    async create(model) {
+        return await Task.create(model);
     }
 
-    async update(taskId, updateData) {
-        return await Task.findByIdAndUpdate(taskId, updateData, { new: true });
+    async update(id, model) {
+        return await Task.findByIdAndUpdate(id, model, { new: true });
     }
 
-    async deleteById(taskId) {
-        return await Task.findByIdAndDelete(taskId);
+    async deleteById(id) {
+        return await Task.findByIdAndDelete(id);
     }
 
-    async getById(taskId) {
-        return await Task.findById(taskId);
+    async getById(id) {
+        return await Task.findById(id);
     }
 
     async getAll() {

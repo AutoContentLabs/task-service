@@ -5,8 +5,8 @@ class TaskController {
 
     async create(req, res) {
         try {
-            const newTask = await taskService.create(req.body);
-            res.status(201).json(newTask);
+            const newModel = await taskService.create(req.body);
+            res.status(201).json(newModel);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -14,8 +14,8 @@ class TaskController {
 
     async update(req, res) {
         try {
-            const updatedTask = await taskService.update(req.params.id, req.body);
-            res.status(200).json(updatedTask);
+            const updatedModel = await taskService.update(req.params.id, req.body);
+            res.status(200).json(updatedModel);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -41,8 +41,8 @@ class TaskController {
 
     async getAll(req, res) {
         try {
-            const tasks = await taskService.getAll();
-            res.status(200).json(tasks);
+            const list = await taskService.getAll();
+            res.status(200).json(list);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -50,8 +50,8 @@ class TaskController {
 
     async start(req, res) {
         try {
-            const task = await taskService.start(req.params.id);
-            res.status(200).json({ message: 'task started successfully', task });
+            const model = await taskService.start(req.params.id);
+            res.status(200).json({ message: 'started successfully', model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -59,8 +59,8 @@ class TaskController {
 
     async stop(req, res) {
         try {
-            const task = await taskService.stop(req.params.id);
-            res.status(200).json({ message: 'task stopped successfully', task });
+            const model = await taskService.stop(req.params.id);
+            res.status(200).json({ message: 'stopped successfully', model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -68,8 +68,8 @@ class TaskController {
 
     async pause(req, res) {
         try {
-            const task = await taskService.pause(req.params.id);
-            res.status(200).json({ message: 'task paused successfully', task });
+            const model = await taskService.pause(req.params.id);
+            res.status(200).json({ message: 'paused successfully', model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -77,8 +77,8 @@ class TaskController {
 
     async resume(req, res) {
         try {
-            const task = await taskService.resume(req.params.id);
-            res.status(200).json({ message: 'task resume successfully', task });
+            const model = await taskService.resume(req.params.id);
+            res.status(200).json({ message: 'resume successfully', model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -86,8 +86,8 @@ class TaskController {
 
     async restart(req, res) {
         try {
-            const task = await taskService.restart(req.params.id);
-            res.status(200).json({ message: 'task restart successfully', task });
+            const model = await taskService.restart(req.params.id);
+            res.status(200).json({ message: 'restart successfully', model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
