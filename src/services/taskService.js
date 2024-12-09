@@ -2,6 +2,7 @@
 const { generateHeaders } = require('@auto-content-labs/messaging-utils/src/helpers/helper');
 const { TaskEngine } = require('../orchestrator');
 const taskRepository = require('../repositories/taskRepository');
+const { sendMessage, events } = require("../utils/messaging")
 
 class TaskService {
     async create(model) {
@@ -43,6 +44,13 @@ class TaskService {
 
         const result = this.update(id, model)
 
+        // send signal
+        try {
+            // const messageStatus = sendMessage(events.task_event, { key: { recordId: model._id, status: model.status, state: model.state }, value: model, headers: model.headers })
+        } catch (error) {
+            console.log(error)
+        }
+       
         // Task Engine
         new TaskEngine(model)
 
