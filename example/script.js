@@ -1,6 +1,4 @@
-// script.js
-
-const apiUrl = 'http://localhost:50000/api/tasks';  // Write your API URL here
+const apiUrl = 'http://localhost:53101/api/tasks';  // Your API URL
 
 // Create Task
 const createTaskForm = document.getElementById('createTaskForm');
@@ -9,12 +7,29 @@ createTaskForm.addEventListener('submit', async (event) => {
 
   const taskName = document.getElementById('taskName').value;
   const taskDescription = document.getElementById('taskDescription').value;
+  const taskType = document.getElementById('taskType').value;
+  const taskState = document.getElementById('taskState').value;
+  const taskStatus = document.getElementById('taskStatus').value;
+  const taskDependenciesInput = document.getElementById('taskDependenciesInput').value;
+  const dependencies = taskDependenciesInput ? taskDependenciesInput.split(',').map(id => id.trim()) : [];
+
+  // Collecting Actions
+  const actions = [];
+  const actionElements = document.getElementById('actionsContainer').children;
+  for (let element of actionElements) {
+    const actionType = element.querySelector('.actionType').value;
+    const actionDetails = element.querySelector('.actionDetails').value;
+    actions.push({ type: actionType, details: actionDetails });
+  }
 
   const task = {
     name: taskName,
     description: taskDescription,
-    status: 'IDLE',  // Default status
-    dependencies: []
+    type: taskType,
+    state: taskState,
+    status: taskStatus,
+    dependencies: dependencies,
+    actions: actions
   };
 
   try {
@@ -35,6 +50,30 @@ createTaskForm.addEventListener('submit', async (event) => {
   }
 });
 
+// Add Action (for Task)
+function addAction() {
+  const actionContainer = document.createElement('div');
+  actionContainer.classList.add('action-item');
+
+  const actionTypeSelect = document.createElement('select');
+  actionTypeSelect.classList.add('actionType');
+  actionTypeSelect.innerHTML = `
+    <option value="START">Start</option>
+    <option value="STOP">Stop</option>
+    <option value="PAUSE">Pause</option>
+    <option value="RESUME">Resume</option>
+  `;
+
+  const actionDetailsInput = document.createElement('input');
+  actionDetailsInput.classList.add('actionDetails');
+  actionDetailsInput.placeholder = 'Action details';
+
+  actionContainer.appendChild(actionTypeSelect);
+  actionContainer.appendChild(actionDetailsInput);
+
+  document.getElementById('actionsContainer').appendChild(actionContainer);
+}
+
 // Get all tasks
 const getTasksBtn = document.getElementById('getTasksBtn');
 getTasksBtn.addEventListener('click', async () => {
@@ -42,7 +81,7 @@ getTasksBtn.addEventListener('click', async () => {
     const response = await fetch(apiUrl);
     const tasks = await response.json();
     const taskList = document.getElementById('taskList');
-    taskList.innerHTML = ''; // Clear
+    taskList.innerHTML = ''; // Clear the list
 
     tasks.forEach(task => {
       const listItem = document.createElement('li');
@@ -63,9 +102,7 @@ updateTaskForm.addEventListener('submit', async (event) => {
   const taskId = document.getElementById('updateTaskId').value;
   const newStatus = document.getElementById('updateTaskStatus').value;
 
-  const updatedTask = {
-    status: newStatus
-  };
+  const updatedTask = { status: newStatus };
 
   try {
     const response = await fetch(`${apiUrl}/${taskId}`, {
