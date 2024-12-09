@@ -1,14 +1,15 @@
 // src\services\taskService.js
-const { generateHeaders } = require('@auto-content-labs/messaging-utils/src/helpers/helper');
-const { TaskEngine } = require('../orchestrator');
-const taskRepository = require('../repositories/taskRepository');
-const { sendMessage, events, sendSignal } = require("../utils/messaging");
-const { logger } = require('@auto-content-labs/messaging-utils');
+const {
+    generateHeaders,
+} = require("@auto-content-labs/messaging-utils/src/helpers/helper");
+const { TaskEngine } = require("../orchestrator");
+const taskRepository = require("../repositories/taskRepository");
+const { sendSignal } = require("../utils/messaging");
 
 class TaskService {
     async create(model) {
         // correlationId  traceId type(schemaType) for service tracing
-        model.headers = generateHeaders("Task")
+        model.headers = generateHeaders("Task");
         return await taskRepository.create(model);
     }
 
@@ -29,66 +30,73 @@ class TaskService {
     }
 
     async start(id) {
-
         const model = await this.getById(id);
         if (!model) {
-            return null
+            return null;
         }
 
-        model.status = 'STARTED';
+        model.status = "STARTED";
 
         model.actions.push({
-            type: 'START',
+            type: "START",
             timestamp: new Date(),
-            details: 'started via API'
+            details: "started via API",
         });
 
-        const result = this.update(id, model)
+        const result = this.update(id, model);
 
         // send signal
-        sendSignal(model)
+        sendSignal(model);
 
         // Task Engine
-        new TaskEngine(model)
+        new TaskEngine(model);
 
         return result;
     }
 
     async stop(id) {
-
         const model = await this.getById(id);
         if (!model) {
-            return null
+            return null;
         }
 
-        model.status = 'STOPPED';
+        model.status = "STOPPED";
 
         model.actions.push({
-            type: 'STOP',
+            type: "STOP",
             timestamp: new Date(),
-            details: 'stopped via API'
+            details: "stopped via API",
         });
 
-        const result = this.update(id, model)
+        const result = this.update(id, model);
+
+        // send signal
+        sendSignal(model);
+
+        // Task Engine
 
         return result;
     }
     async pause(id) {
-
         const model = await this.getById(id);
         if (!model) {
-            return null
+            return null;
         }
 
-        model.status = 'PAUSED';
+        model.status = "PAUSED";
 
         model.actions.push({
-            type: 'PAUSE',
+            type: "PAUSE",
             timestamp: new Date(),
-            details: 'paused via API'
+            details: "paused via API",
         });
 
-        const result = this.update(id, model)
+        const result = this.update(id, model);
+
+        // send signal
+        sendSignal(model);
+
+        // Task Engine
 
         return result;
     }
@@ -96,18 +104,23 @@ class TaskService {
     async resume(id) {
         const model = await this.getById(id);
         if (!model) {
-            return null
+            return null;
         }
 
-        model.status = 'RESUMED';
+        model.status = "RESUMED";
 
         model.actions.push({
-            type: 'RESUME',
+            type: "RESUME",
             timestamp: new Date(),
-            details: 'resumed via API'
+            details: "resumed via API",
         });
 
-        const result = this.update(id, model)
+        const result = this.update(id, model);
+
+        // send signal
+        sendSignal(model);
+
+        // Task Engine
 
         return result;
     }
@@ -115,22 +128,26 @@ class TaskService {
     async restart(id) {
         const model = await this.getById(id);
         if (!model) {
-            return null
+            return null;
         }
 
-        model.status = 'RESTARTED';
+        model.status = "RESTARTED";
 
         model.actions.push({
-            type: 'RESTART',
+            type: "RESTART",
             timestamp: new Date(),
-            details: 'Task resumed via API'
+            details: "Task resumed via API",
         });
 
-        const result = this.update(id, model)
+        const result = this.update(id, model);
+
+        // send signal
+        sendSignal(model);
+
+        // Task Engine
 
         return result;
     }
-
 }
 
 module.exports = new TaskService();
