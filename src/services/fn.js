@@ -26,7 +26,7 @@ async function start() {
     global.startTime = Date.now();
 
     // The event we will listen to.
-    const eventName = events.task;
+    const eventName = events.tasks;
 
     // Listen to incoming data source requests
     await listenMessage(eventName, eventFunction);

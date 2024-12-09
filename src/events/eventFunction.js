@@ -15,18 +15,17 @@ const { create, update, deleteById, getById, getAll, start, stop, pause, resume,
  */
 async function eventFunction(pair) {
   const { key, value, headers } = pair
-  if (!value) {
-    logger.error("No value found in the message");
+
+  if (!key && !value) {
+    logger.error("No key and value found in the message");
     return;
   }
 
-  // prepare the model to be used
+  const id = key.recordId
+  const action = key.action
   const model = await handleFunction({ key, value, headers });
-  // prepare the title to be moved  
-  const providedHeaders = { correlationId: headers.correlationId, traceId: headers.traceId } // track before request
+
   let response;
-  let action = model.action
-  let id = model.id
   try {
 
     switch (action) {
@@ -46,7 +45,7 @@ async function eventFunction(pair) {
       case 'GET_ALL':
         response = await getAll()
         break;
-        
+
       case 'START':
         response = await start(id)
         break;
@@ -68,8 +67,9 @@ async function eventFunction(pair) {
         return;
     }
 
-    const result = await sendMessage("TASK_EVENT", { value: response, headers: providedHeaders })
+    const result = await sendMessage("TASK_EVENT", { value: response, headers })
 
+    logger.info(`message sent ${headers.correlationId} - ${result}`)
   } catch (error) {
     // Handle errors and send failure response
     const errorMessage = error instanceof Error ? error.message : `${error}`;

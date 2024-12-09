@@ -7,13 +7,11 @@ const logger = require('../helpers/logger');
 
 
 async function listen(event, callback) {
-    logger.info("listen")
     listenMessage(event, callback)
 }
 
 // Send Message Function with Error Handling and Logging
 async function send(event, providedPair) {
-    logger.info("send")
     const headers = providedPair.headers || helper.generateHeaders(event);
     const key = providedPair.key || helper.generateKey();
     const value = providedPair.value
@@ -38,18 +36,15 @@ async function send(event, providedPair) {
     }
 }
 
-async function sendResponse() {
-    logger.info("sendResponse")
+async function handleFunction({ key, value, headers }) {
+    return value
 }
-async function handleFunction() {
-    logger.info("handleFunction")
-}
+
 module.exports = {
     events: {
-        task: "TASK"
+        tasks: "tasks"
     },
     sendMessage: send,
-    sendResponse,
     listenMessage: listen,
     handleFunction
 };
