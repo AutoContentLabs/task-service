@@ -3,8 +3,8 @@
  * @description Event Task
  */
 const logger = require('../helpers/logger');
-const { sendResponse, handleFunction } = require('../utils/messaging');
-
+const { handleFunction, sendMessage } = require('../utils/messaging');
+const taskService = require('../services/taskService');
 /**
  * Handles request events.
  * @param {Object} pair - The processed data source object.
@@ -24,11 +24,27 @@ async function eventFunction(pair) {
   const model = await handleFunction({ key, value, headers });
   // prepare the title to be moved  
   const providedHeaders = { correlationId: headers.correlationId, traceId: headers.traceId } // track before request
-
+  let response;
+  let action = model.action
+  let id = model.id
   try {
-    const response = { "status":"ok"}
-    // Send the successful response
-    await sendResponse({ value: response, headers: providedHeaders });
+
+    switch (action) {
+      case 'START':
+        response = await taskService.startTask(id)
+        break;
+      case 'PAUSE':
+        response = await taskService.pauseTask(id)
+        break;
+      case 'STOP':
+        response = await taskService.stopTask(id)
+        break;
+      default:
+        console.log('Unknown action:', action);
+        return;
+    }
+
+    const result = await sendMessage("TASK_EVENT", { value: response, headers: providedHeaders })
 
   } catch (error) {
     // Handle errors and send failure response

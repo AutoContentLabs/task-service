@@ -1,3 +1,4 @@
+// src\controllers\taskController.js
 const taskService = require('../services/taskService');
 
 class TaskController {
@@ -41,6 +42,33 @@ class TaskController {
         try {
             await taskService.deleteTask(req.params.id);
             res.status(204).end();
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async startTask(req, res) {
+        try {
+            const task = await taskService.startTask(req.params.id);
+            res.status(200).json({ message: 'task started successfully', task });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async pauseTask(req, res) {
+        try {
+            const task = await taskService.pauseTask(req.params.id);
+            res.status(200).json({ message: 'task paused successfully', task });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async stopTask(req, res) {
+        try {
+            const task = await taskService.stopTask(req.params.id);
+            res.status(200).json({ message: 'task stopped successfully', task });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

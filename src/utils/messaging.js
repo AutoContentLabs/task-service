@@ -14,10 +14,11 @@ async function listen(event, callback) {
 // Send Message Function with Error Handling and Logging
 async function send(event, providedPair) {
     logger.info("send")
-    const headers = helper.generateHeaders(event);
-    const key = helper.generateKey();
+    const headers = providedPair.headers || helper.generateHeaders(event);
+    const key = providedPair.key || helper.generateKey();
+    const value = providedPair.value
     const pair = {
-        value: providedPair.value,
+        value,
         key,
         headers
     };

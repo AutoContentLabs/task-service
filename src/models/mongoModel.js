@@ -26,9 +26,18 @@ const task = {
     },
     status: {
         type: String,
-        enum: ['IDLE', 'RUNNING', 'COMPLETED', 'FAILED'],
+        enum: ['IDLE', 'STARTED', 'PAUSED', 'STOPPED', 'RESUMED', 'IN_PROGRESS'],
         default: 'IDLE'
     },
+    actions: [{
+        type: {
+            type: String,
+            enum: ['START', 'STOP', 'PAUSE', 'RESUME'],
+            required: true
+        },
+        timestamp: { type: Date, default: Date.now },
+        details: { type: String, required: false }
+    }],
     dependencies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }], // Dependencies of other tasks
     on_start: [{
         type: { type: String, required: true, enum: ['config', 'service', 'task', 'script'] },
