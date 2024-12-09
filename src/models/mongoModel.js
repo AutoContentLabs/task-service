@@ -13,6 +13,7 @@ const errorLogSchema = new mongoose.Schema({
 const task = {
     name: { type: String, required: true, unique: true }, // Task name (unique)
     description: { type: String, required: false }, // Task description
+    headers: { type: mongoose.Schema.Types.Mixed }, // correlationId  traceId type(schemaType) for service tracing
     type: {
         type: String,
         required: true,

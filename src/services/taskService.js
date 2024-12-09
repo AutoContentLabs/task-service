@@ -1,9 +1,12 @@
 // src\services\taskService.js
+const { generateHeaders } = require('@auto-content-labs/messaging-utils/src/helpers/helper');
 const { TaskEngine } = require('../orchestrator');
 const taskRepository = require('../repositories/taskRepository');
 
 class TaskService {
     async create(model) {
+        // correlationId  traceId type(schemaType) for service tracing
+        model.headers = generateHeaders("Task")
         return await taskRepository.create(model);
     }
 
