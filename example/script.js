@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:53101/api/tasks"; // API URL
+const apiUrl = "http://localhost:53100/api/tasks"; // API URL
 
 // Create Task
 const createTaskForm = document.getElementById("createTaskForm");

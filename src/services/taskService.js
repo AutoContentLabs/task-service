@@ -2,7 +2,8 @@
 const { generateHeaders } = require('@auto-content-labs/messaging-utils/src/helpers/helper');
 const { TaskEngine } = require('../orchestrator');
 const taskRepository = require('../repositories/taskRepository');
-const { sendMessage, events } = require("../utils/messaging")
+const { sendMessage, events } = require("../utils/messaging");
+const { logger } = require('@auto-content-labs/messaging-utils');
 
 class TaskService {
     async create(model) {
@@ -46,11 +47,17 @@ class TaskService {
 
         // send signal
         try {
-            // const messageStatus = sendMessage(events.task_event, { key: { recordId: model._id, status: model.status, state: model.state }, value: model, headers: model.headers })
+            const headers = JSON.parse(JSON.stringify(model.headers))
+            const recordId = model._id
+            const status = model.status
+            const state = model.state
+            const value = JSON.parse(JSON.stringify(model))
+            const messageStatus = sendMessage(events.task_event, { key: { recordId, status, state }, value, headers })
+            logger.info(messageStatus)
         } catch (error) {
             console.log(error)
         }
-       
+
         // Task Engine
         new TaskEngine(model)
 

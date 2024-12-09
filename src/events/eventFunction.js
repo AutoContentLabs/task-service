@@ -3,7 +3,7 @@
  * @description Event Task
  */
 const logger = require("../helpers/logger");
-const { handleFunction, sendResponse } = require("../utils/messaging");
+const { sendMessage } = require("../utils/messaging");
 const {
   create,
   update,
@@ -79,7 +79,7 @@ async function eventFunction(pair) {
     }
 
     key.status = response.status;
-    const result = await sendResponse({ key, value: response, headers });
+    const result = await sendMessage(events.task_event, { key, value: response, headers });
 
     logger.info(`message sent ${headers.correlationId} - ${result}`);
   } catch (error) {
