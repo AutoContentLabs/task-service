@@ -1,6 +1,9 @@
 // sendSignal.js 
 
 const { sendMessage } = require("@auto-content-labs/messaging")
+const events = require("./events")
+const logger = require("../helpers/logger")
+
 /**
  * 
  * @param {Object} model - 
@@ -26,7 +29,6 @@ const sendSignal = async (model) => {
             value,
             headers
         });
-
 
         logger.info(messageStatus);
     } catch (error) {
