@@ -11,7 +11,7 @@ const {
     ACTION_TYPES,
 } = require("../models/mongoModel");
 const logger = require("../helpers/logger");
-
+const EventEmitter = require('events');
 /**
  * @class TaskService
  * @description Manages task-related operations like state updates and action handling.
@@ -27,7 +27,10 @@ const logger = require("../helpers/logger");
  * @method {Function} resume - 
  * @method {Function} restart - 
  */
-class TaskService {
+class TaskService extends EventEmitter {
+    constructor() {
+        super();
+    }
 
     async create(model) {
         // correlationId  traceId type(schemaType) for service tracing
@@ -79,18 +82,42 @@ class TaskService {
      */
     static createTaskMethod(name, status, state, action) {
 
+        /**
+         * for external call
+         * TaskService[<methodName>]
+         */
         TaskService.prototype["methods"]?.push(name);
 
+        /**
+         * 
+         * @param {*} id 
+         * @returns Task
+         */
         TaskService.prototype[name] = async function (id) {
 
             const model = await this.updateTaskState(id, status, state, action);
 
+            // request event
+            this.emit(status, model)
+            // external event for status
+            // this is for request
+            sendSignal(model);
+
             const engine = new TaskEngine(model);
+
             engine[name]();
 
             for (const state of Object.values(TASK_STATES)) {
                 engine.on(state, (task) => {
+
+                    // volume
                     logger.notice(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name}`);
+
+                    // engine event
+                    this.emit(state, task)
+
+                    // external event for state
+                    // this is for engine
                     sendSignal(model);
                 });
             }

@@ -3,7 +3,7 @@
  * @description Event Task
  */
 const logger = require("../helpers/logger");
-const { sendMessage } = require("../utils/messaging");
+const { sendMessage, events } = require("../utils/messaging");
 const {
   create,
   update,
@@ -15,7 +15,9 @@ const {
   pause,
   resume,
   restart,
+  on
 } = require("../services/taskService");
+const { TASK_STATES, TASK_STATUSES } = require("../models/mongoModel");
 /**
  * Handles request events.
  * @param {Object} pair - The processed data source object.
@@ -37,57 +39,81 @@ async function eventFunction(pair) {
     const action = key.action;
     const model = value;
 
-    let response;
-
     switch (action) {
       case "CREATE":
-        response = await create(model);
+        create(model);
         break;
 
       case "UPDATE":
-        response = await update(id, model);
+        update(id, model);
         break;
+
       case "DELETE":
-        response = await deleteById(id);
+        deleteById(id);
         break;
+
       case "GET":
-        response = await getById(id);
+        getById(id);
         break;
+
       case "GET_ALL":
-        response = await getAll();
+        getAll();
         break;
 
       case "START":
-        response = await start(id);
+        start(id);
         break;
+
       case "STOP":
-        response = await stop(id);
+        stop(id);
         break;
+
       case "PAUSE":
-        response = await pause(id);
+        pause(id);
         break;
+
       case "RESUME":
-        response = await resume(id);
+        resume(id);
         break;
+
       case "RESTART":
-        response = await restart(id);
+        restart(id);
         break;
 
       default:
-        console.log("Unknown action:", action);
+        logger.warning("Unknown action request:", action);
         return;
     }
 
-    key.status = response.status;
-    const result = await sendMessage(events.task_event, { key, value: response, headers });
+    logger.notice(`action request - ${headers.correlationId} - ${action}`);
 
-    logger.info(`message sent ${headers.correlationId} - ${result}`);
+    // status already sending in service
+    // this is for request
+    // for (const status of Object.values(TASK_STATUSES)) {
+    //   on(status, (model) => {
+    //     // no waiting
+    //     // send response for status
+    //     sendMessage(events.task_event, { key, value: model, headers });
+    //   })
+    // }
+
+    // state already sending in service
+    // this is for engine
+    // for (const state of Object.values(TASK_STATES)) {
+    //   on(state, (model) => {
+    //     // no waiting
+    //     // send response for state
+    //     sendMessage(events.task_event, { key, value: model, headers });
+    //   })
+    // }
+
+
   } catch (error) {
     // Handle errors and send failure response
     const errorMessage = error instanceof Error ? error.message : `${error}`;
 
     logger.error(
-      `[ds] ${headers.correlationId} - ${error.name || "Unknown Error"}`,
+      `action request - ${headers.correlationId} - ${error.name || "Unknown Error"}`,
       errorMessage
     );
 
