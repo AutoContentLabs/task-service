@@ -1,6 +1,8 @@
 /**
  * @file src/orchestrator/taskExecutor.js
  */
+const logger = require("../helpers/logger")
+const { TASK_TYPES } = require("../models/mongoModel");
 module.exports = class TaskExecutor {
   /**
    * @param {Object} task - The task object to be executed
@@ -14,13 +16,13 @@ module.exports = class TaskExecutor {
    */
   async execute() {
     switch (this.task.type) {
-      case 'TASK':
+      case TASK_TYPES.TASK:
         await this.executeTask();
         break;
-      case 'WORKFLOW':
+      case TASK_TYPES.WORKFLOW:
         await this.executeWorkflow();
         break;
-      case 'PIPELINE':
+      case TASK_TYPES.PIPELINE:
         await this.executePipeline();
         break;
       default:
@@ -32,12 +34,11 @@ module.exports = class TaskExecutor {
    * Execute a regular task
    */
   async executeTask() {
-
     // test
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Logic to execute a single task
-    console.log(`Executing task: ${this.task.name}`);
+    logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
     // You could add specific code here that actually performs the task logic
   }
 
@@ -45,9 +46,8 @@ module.exports = class TaskExecutor {
    * Execute a workflow
    */
   async executeWorkflow() {
-
     // test
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     console.log(`Executing workflow: ${this.task.name}`);
     // Execute all tasks in the workflow in sequence or based on their dependencies
@@ -57,11 +57,10 @@ module.exports = class TaskExecutor {
    * Execute a pipeline
    */
   async executePipeline() {
-
     // test
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     console.log(`Executing pipeline: ${this.task.name}`);
     // Execute workflows sequentially or in parallel, depending on the pipeline configuration
   }
-}
+};

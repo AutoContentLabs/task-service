@@ -5,6 +5,11 @@ const {
 const { TaskEngine } = require("../orchestrator");
 const taskRepository = require("../repositories/taskRepository");
 const { sendSignal } = require("../utils/messaging");
+const {
+    TASK_STATES,
+    TASK_STATUSES,
+    ACTION_TYPES,
+} = require("../models/mongoModel");
 
 class TaskService {
     async create(model) {
@@ -29,121 +34,95 @@ class TaskService {
         return await taskRepository.getAll();
     }
 
-    async start(id) {
+    async updateTaskState(id, status, state, action) {
         const model = await this.getById(id);
         if (!model) return null;
 
-        model.status = "STARTED";  // Task is started
-        model.state = "RUNNING";   // Task state is RUNNING
+        model.status = status;
+        model.state = state;
 
         model.actions.push({
-            type: "START",
+            type: action,
             timestamp: new Date(),
-            details: "started via API",
+            details: `${model.status} via API or EVENTS`,
         });
 
         const result = this.update(id, model);
 
         sendSignal(model);
+
+        return result;
+    }
+
+    async start(id) {
+        const model = await this.updateTaskState(
+            id,
+            TASK_STATUSES.STARTED,
+            TASK_STATES.RUNNING,
+            ACTION_TYPES.START
+        );
 
         const engine = new TaskEngine(model);
         await engine.start();
 
-        return result;
+        return model;
     }
 
     async stop(id) {
-        const model = await this.getById(id);
-        if (!model) return null;
-
-        model.status = "STOPPED";  // Task is stopped
-        model.state = "STOPPED";   // Task state is STOPPED
-
-        model.actions.push({
-            type: "STOP",
-            timestamp: new Date(),
-            details: "stopped via API",
-        });
-
-        const result = this.update(id, model);
-
-        sendSignal(model);
+        const model = await this.updateTaskState(
+            id,
+            TASK_STATUSES.STOPPED,
+            TASK_STATES.STOPPED,
+            ACTION_TYPES.STOP
+        );
 
         const engine = new TaskEngine(model);
         await engine.stop();
 
-        return result;
+        return model;
     }
 
     async pause(id) {
-        const model = await this.getById(id);
-        if (!model) return null;
-
-        model.status = "PAUSED";  // Task is paused
-        model.state = "PAUSED";   // Task state is PAUSED
-
-        model.actions.push({
-            type: "PAUSE",
-            timestamp: new Date(),
-            details: "paused via API",
-        });
-
-        const result = this.update(id, model);
-
-        sendSignal(model);
+        const model = await this.updateTaskState(
+            id,
+            TASK_STATUSES.PAUSED,
+            TASK_STATES.PAUSED,
+            ACTION_TYPES.PAUSE
+        );
 
         const engine = new TaskEngine(model);
         await engine.pause();
 
-        return result;
+        return model;
     }
 
     async resume(id) {
-        const model = await this.getById(id);
-        if (!model) return null;
-
-        model.status = "RESUMED";  // Task is resumed
-        model.state = "RUNNING";   // Task state is running again
-
-        model.actions.push({
-            type: "RESUME",
-            timestamp: new Date(),
-            details: "resumed via API",
-        });
-
-        const result = this.update(id, model);
-
-        sendSignal(model);
+        const model = await this.updateTaskState(
+            id,
+            TASK_STATUSES.RESUMED,
+            TASK_STATES.RUNNING,
+            ACTION_TYPES.RESUME
+        );
 
         const engine = new TaskEngine(model);
         await engine.resume();
 
-        return result;
+        return model;
     }
 
     async restart(id) {
-        const model = await this.getById(id);
-        if (!model) return null;
-
-        model.status = "RESTARTED"; // Task is restarted
-        model.state = "RUNNING";    // Task state is running again
-
-        model.actions.push({
-            type: "RESTART",
-            timestamp: new Date(),
-            details: "Task restarted via API",
-        });
-
-        const result = this.update(id, model);
-
-        sendSignal(model);
+        const model = await this.updateTaskState(
+            id,
+            TASK_STATUSES.RESTARTED,
+            TASK_STATES.RUNNING,
+            ACTION_TYPES.RESTART
+        );
 
         const engine = new TaskEngine(model);
         await engine.restart();
 
-        return result;
+        return model;
     }
 }
-
 
 module.exports = new TaskService();

@@ -7,12 +7,12 @@ module.exports = class TaskRegistry {
   }
 
   /**
-   * 
-   * @param {string} taskId 
-   * @param {Task} task 
+   *
+   * @param {string} taskId
+   * @param {Task} task
    */
   registerTask(taskId, task) {
-    this.tasks.set(taskId, { ...task, status: 'pending' });
+    this.tasks.set(taskId, { ...task, status: "pending" });
   }
 
   getTask(taskId) {
@@ -37,6 +37,6 @@ module.exports = class TaskRegistry {
 
   isTaskSuccessful(taskId) {
     const task = getTask(taskId);
-    return task && task.state === 'COMPLETED';
+    return task && task.state === "COMPLETED";
   }
-}
+};
