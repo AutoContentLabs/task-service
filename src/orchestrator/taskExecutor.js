@@ -49,8 +49,9 @@ module.exports = class TaskExecutor {
     // test
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    console.log(`Executing workflow: ${this.task.name}`);
-    // Execute all tasks in the workflow in sequence or based on their dependencies
+    // Logic to execute a single task
+    logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
+    // You could add specific code here that actually performs the task logic
   }
 
   /**
@@ -60,7 +61,8 @@ module.exports = class TaskExecutor {
     // test
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    console.log(`Executing pipeline: ${this.task.name}`);
-    // Execute workflows sequentially or in parallel, depending on the pipeline configuration
+    // Logic to execute a single task
+    logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
+    // You could add specific code here that actually performs the task logic
   }
 };
