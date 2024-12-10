@@ -22,14 +22,18 @@ class TaskController {
     }
 
     async deleteById(req, res) {
-        try {
-            await taskService.deleteById(req.params.id);
-            res.status(204).end();
-        } catch (error) {
+        try {           
+            const result = await taskService.deleteById(req.params.id);                
+            if (result) {
+                res.status(204).end();
+            } else {               
+                res.status(404).json({ error: 'Task not found' });
+            }
+        } catch (error) {           
             res.status(500).json({ error: error.message });
         }
     }
-
+          
     async getById(req, res) {
         try {
             const task = await taskService.getById(req.params.id);
