@@ -48,6 +48,9 @@
         background-color: #ccc;
         cursor: not-allowed;
       }
+      .delete-btn {
+        background-color: #dc3545;
+      }
     </style>
   </head>
   <body>
@@ -128,6 +131,7 @@
                 <button onclick="stopTask('${task._id}')">Stop</button>
                 <button onclick="resumeTask('${task._id}')">Resume</button>
                 <button onclick="restartTask('${task._id}')">Restart</button>
+                <button onclick="deleteTask('${task._id}')" class="delete-btn">Delete</button> <!-- Silme butonu -->
               </div>
             `;
             taskList.appendChild(listItem);
@@ -219,6 +223,28 @@
           }
         } catch (error) {
           console.error("Error restarting task:", error);
+        }
+      };
+
+      // Delete Task
+      const deleteTask = async (taskId) => {
+        if (confirm("Are you sure you want to delete this task?")) {
+          try {
+            const response = await fetch(`${apiUrl}/${taskId}`, {
+              method: "DELETE",
+            });
+
+            if (response.status === 204) {
+              alert("Task deleted successfully.");
+              getTasks();
+            } else {
+              const data = await response.json();
+              alert("Error: " + data.error);
+            }
+          } catch (error) {
+            console.error("Error deleting task:", error);
+            alert("Error deleting task: " + error.message);
+          }
         }
       };
 

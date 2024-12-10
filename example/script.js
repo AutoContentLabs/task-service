@@ -25,6 +25,7 @@ createTaskForm.addEventListener("submit", async (event) => {
     if (response.ok) {
       getTasks(); // Refresh the task list
     } else {
+      console.error("Error creating task:", data);
     }
   } catch (error) {
     console.error("Error creating task:", error);
@@ -42,13 +43,16 @@ const getTasks = async () => {
     tasks.forEach((task) => {
       const listItem = document.createElement("li");
       listItem.innerHTML = `
-    <strong>${task.name}</strong> - ${task.state} - ${task.status} 
-    <div class="actions-container">
-      <button onclick="startTask('${task._id}')">Start</button>
-      <button onclick="pauseTask('${task._id}')">Pause</button>
-      <button onclick="stopTask('${task._id}')">Stop</button>
-    </div>
-  `;
+        <strong>${task.name}</strong> - ${task.state} - ${task.status} 
+        <div class="actions-container">
+          <button onclick="startTask('${task._id}')">Start</button>
+          <button onclick="pauseTask('${task._id}')">Pause</button>
+          <button onclick="stopTask('${task._id}')">Stop</button>
+          <button onclick="resumeTask('${task._id}')">Resume</button>
+          <button onclick="restartTask('${task._id}')">Restart</button>
+          <button onclick="deleteTask('${task._id}')" class="delete-btn">Delete</button> <!-- Silme butonu -->
+        </div>
+      `;
       taskList.appendChild(listItem);
     });
   } catch (error) {
@@ -66,6 +70,7 @@ const startTask = async (taskId) => {
     if (response.ok) {
       getTasks(); // Refresh the task list
     } else {
+      alert(`Error: ${data.message}`);
     }
   } catch (error) {
     console.error("Error starting task:", error);
@@ -99,9 +104,66 @@ const stopTask = async (taskId) => {
     if (response.ok) {
       getTasks(); // Refresh the task list
     } else {
+      alert(`Error: ${data.message}`);
     }
   } catch (error) {
     console.error("Error stopping task:", error);
+  }
+};
+
+// Resume Task
+const resumeTask = async (taskId) => {
+  try {
+    const response = await fetch(`${apiUrl}/${taskId}/resume`, {
+      method: "POST",
+    });
+    const data = await response.json();
+    if (response.ok) {
+      getTasks(); // Refresh the task list
+    } else {
+      alert(`Error: ${data.message}`);
+    }
+  } catch (error) {
+    console.error("Error resuming task:", error);
+  }
+};
+
+// Restart Task
+const restartTask = async (taskId) => {
+  try {
+    const response = await fetch(`${apiUrl}/${taskId}/restart`, {
+      method: "POST",
+    });
+    const data = await response.json();
+    if (response.ok) {
+      getTasks(); // Refresh the task list
+    } else {
+      alert(`Error: ${data.message}`);
+    }
+  } catch (error) {
+    console.error("Error restarting task:", error);
+  }
+};
+
+// Delete Task
+const deleteTask = async (taskId) => {
+  if (confirm("Are you sure you want to delete this task?")) {
+    try {
+      const response = await fetch(`${apiUrl}/${taskId}`, {
+        method: "DELETE",
+      });
+
+      if (response.status === 204) {
+        alert("Task deleted successfully.");
+        getTasks();
+      } else {
+        const data = await response.json();
+        alert("Error: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Error deleting task: " + error.message);
+    }
   }
 };
 
