@@ -10,6 +10,7 @@ const {
     TASK_STATUSES,
     ACTION_TYPES,
 } = require("../models/mongoModel");
+const logger = require("../helpers/logger");
 
 class TaskService {
     async create(model) {
@@ -36,7 +37,7 @@ class TaskService {
 
     async updateTaskState(id, status, state, action) {
         const model = await this.getById(id);
-        if (!model) return null;
+        if (!model) throw new Error('Task not found');
 
         model.status = status;
         model.state = state;
@@ -63,7 +64,16 @@ class TaskService {
         );
 
         const engine = new TaskEngine(model);
-        await engine.start();
+        // we not waiting
+        engine.start();
+
+        engine.on(TASK_STATES.COMPLETED, (task) => {
+            logger.notice(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name}`);
+        });
+
+        engine.on(TASK_STATES.FAILED, (error) => {
+            logger.error(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name} - ${error.message}`);
+        });
 
         return model;
     }
@@ -77,7 +87,8 @@ class TaskService {
         );
 
         const engine = new TaskEngine(model);
-        await engine.stop();
+        // we not waiting
+        engine.stop();
 
         return model;
     }
@@ -91,7 +102,8 @@ class TaskService {
         );
 
         const engine = new TaskEngine(model);
-        await engine.pause();
+        // we not waiting
+        engine.pause();
 
         return model;
     }
@@ -105,7 +117,8 @@ class TaskService {
         );
 
         const engine = new TaskEngine(model);
-        await engine.resume();
+        // we not waiting
+        engine.resume();
 
         return model;
     }
@@ -119,7 +132,8 @@ class TaskService {
         );
 
         const engine = new TaskEngine(model);
-        await engine.restart();
+        // we not waiting
+        engine.restart();
 
         return model;
     }

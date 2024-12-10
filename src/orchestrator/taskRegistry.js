@@ -32,7 +32,7 @@ module.exports = class TaskRegistry {
   }
 
   removeTask(taskId) {
-    delete getTask(taskId);
+    this.tasks.delete(taskId);
   }
 
   isTaskSuccessful(taskId) {

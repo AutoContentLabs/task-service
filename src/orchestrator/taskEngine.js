@@ -8,10 +8,12 @@ const {
   executeOnFailure,
   TASK_STATES,
   TASK_STATUSES,
+  ACTION_TYPES,
 } = require("../models/mongoModel");
-
-module.exports = class TaskEngine {
+const EventEmitter = require('events');
+module.exports = class TaskEngine extends EventEmitter {
   constructor(task) {
+    super();
     this.task = task;
     this.state = new TaskState(task);
     this.executor = new TaskExecutor(task);
@@ -29,33 +31,40 @@ module.exports = class TaskEngine {
   async start() {
     try {
       await this.state.updateState(TASK_STATES.RUNNING);
+      this.emit(ACTION_TYPES.START, this.task);
       await this.executor.execute();
       await this.state.updateState(TASK_STATES.COMPLETED);
+      this.emit(TASK_STATES.COMPLETED, this.task)
     } catch (error) {
       await this.state.updateState(TASK_STATES.FAILED);
       await this.handleFailure(error);
+      this.emit(TASK_STATES.FAILED, error);
     }
   }
 
   async pause() {
     await this.state.updateState(TASK_STATES.PAUSED);
     this.task.status = TASK_STATUSES.PAUSED;
+    this.emit(TASK_STATES.PAUSED, this.task);
   }
 
   async resume() {
     await this.state.updateState(TASK_STATES.RUNNING);
     this.task.status = TASK_STATUSES.RESUMED;
     await this.executor.execute();
+    // ?
   }
 
   async restart() {
     await this.state.updateState(TASK_STATES.RESTARTED);
     this.task.status = TASK_STATUSES.RESTARTED;
     await this.executor.execute();
+    // ?
   }
 
   async stop() {
     await this.state.updateState(TASK_STATUSES.STOPPED);
     this.task.status = TASK_STATUSES.STOPPED;
+    this.emit(TASK_STATES.STOPPED, this.task);
   }
 };

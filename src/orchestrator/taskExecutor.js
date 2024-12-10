@@ -15,18 +15,22 @@ module.exports = class TaskExecutor {
    * Execute the task logic based on its type
    */
   async execute() {
-    switch (this.task.type) {
-      case TASK_TYPES.TASK:
-        await this.executeTask();
-        break;
-      case TASK_TYPES.WORKFLOW:
-        await this.executeWorkflow();
-        break;
-      case TASK_TYPES.PIPELINE:
-        await this.executePipeline();
-        break;
-      default:
-        throw new Error(`Unsupported task type: ${this.task.type}`);
+    try {
+      switch (this.task.type) {
+        case TASK_TYPES.TASK:
+          await this.executeTask();
+          break;
+        case TASK_TYPES.WORKFLOW:
+          await this.executeWorkflow();
+          break;
+        case TASK_TYPES.PIPELINE:
+          await this.executePipeline();
+          break;
+        default:
+          throw new Error(`Unsupported task type: ${this.task.type}`);
+      }
+    } catch (error) {
+      throw new Error(`Task execution failed: ${error.message}`);
     }
   }
 
@@ -34,35 +38,36 @@ module.exports = class TaskExecutor {
    * Execute a regular task
    */
   async executeTask() {
-    // test
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     // Logic to execute a single task
     logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
+
     // You could add specific code here that actually performs the task logic
+    // test
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   /**
    * Execute a workflow
    */
   async executeWorkflow() {
-    // test
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     // Logic to execute a single task
     logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
+
     // You could add specific code here that actually performs the task logic
+    // test
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   /**
    * Execute a pipeline
    */
   async executePipeline() {
-    // test
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Logic to execute a single task
     logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
+
     // You could add specific code here that actually performs the task logic
+    // test
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 };
