@@ -49,18 +49,19 @@ module.exports = class TaskEngine extends EventEmitter {
   async resume() {
     await this.state.updateState(TASK_STATES.RUNNING);
     this.task.status = TASK_STATUSES.RESUMED;
-    await this.executor.execute();
+    await this.executor.execute();  
+    await this.state.updateState(TASK_STATES.COMPLETED);
+    this.task.status = TASK_STATUSES.COMPLETED;  
     this.emit(TASK_STATES.RUNNING, this.task);
+    this.emit(TASK_STATES.COMPLETED, this.task);
   }
 
   async restart() {
     try {
       await this.state.updateState(TASK_STATES.RESTARTED);
       this.task.status = TASK_STATUSES.RESTARTED;
-
       this.emit(TASK_STATUSES.RESTARTED, this.task);
       await this.executor.execute();
-
       await this.state.updateState(TASK_STATES.COMPLETED);
       this.task.status = TASK_STATUSES.COMPLETED;
       this.emit(TASK_STATES.COMPLETED, this.task);

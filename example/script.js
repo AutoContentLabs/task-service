@@ -132,7 +132,7 @@ const checkTaskStatus = async (taskId) => {
             clearInterval(interval); // Stop checking after completion or 10 attempts
             getTasks(); // Refresh the task list after task completion
         }
-    }, 2000); // Check every 2 seconds
+    }, 500); // Check every 1/2 seconds
 };
 
 // Start Task
