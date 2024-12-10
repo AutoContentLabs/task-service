@@ -12,7 +12,23 @@ const {
 } = require("../models/mongoModel");
 const logger = require("../helpers/logger");
 
+/**
+ * @class TaskService
+ * @description Manages task-related operations like state updates and action handling.
+ * @method {Function} create - Creates a new task in the repository.
+ * @method {Function} update - Updates an existing task in the repository.
+ * @method {Function} deleteById - Deletes a task by its ID.
+ * @method {Function} getById - Fetches a task by its ID.
+ * @method {Function} getAll - Fetches all tasks.
+ * @method {Function} createTaskMethod - Dynamically creates task methods like start, stop, etc.
+ * @method {Function} start - 
+ * @method {Function} stop -
+ * @method {Function} pause -
+ * @method {Function} resume - 
+ * @method {Function} restart - 
+ */
 class TaskService {
+
     async create(model) {
         // correlationId  traceId type(schemaType) for service tracing
         model.headers = generateHeaders("Task");
@@ -36,6 +52,7 @@ class TaskService {
     }
 
     async updateTaskState(id, status, state, action) {
+
         const model = await this.getById(id);
         if (!model) throw new Error('Task not found');
 
@@ -50,93 +67,42 @@ class TaskService {
 
         const result = this.update(id, model);
 
-        sendSignal(model);
-
         return result;
     }
 
-    async start(id) {
-        const model = await this.updateTaskState(
-            id,
-            TASK_STATUSES.STARTED,
-            TASK_STATES.RUNNING,
-            ACTION_TYPES.START
-        );
+    /**
+     * Dynamically adds task methods to TaskService like start, stop, etc.
+     * @param {string} name - The name of the method to create (e.g., "start").
+     * @param {string} status - The status of the task to set.
+     * @param {string} state - The state of the task to update.
+     * @param {string} action - The action to be performed on the task.
+     */
+    static createTaskMethod(name, status, state, action) {
 
-        const engine = new TaskEngine(model);
-        // we not waiting
-        engine.start();
+        TaskService.prototype["methods"]?.push(name);
 
-        engine.on(TASK_STATES.COMPLETED, (task) => {
-            logger.notice(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name}`);
-        });
+        TaskService.prototype[name] = async function (id) {
+            const model = await this.updateTaskState(id, status, state, action);
+            const engine = new TaskEngine(model);
+            engine[name]();
 
-        engine.on(TASK_STATES.FAILED, (error) => {
-            logger.error(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name} - ${error.message}`);
-        });
+            for (const state of Object.values(TASK_STATES)) {
+                engine.on(state, (task) => {
+                    logger.notice(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name}`);
+                    sendSignal(model);
+                });
+            }
 
-        return model;
-    }
-
-    async stop(id) {
-        const model = await this.updateTaskState(
-            id,
-            TASK_STATUSES.STOPPED,
-            TASK_STATES.STOPPED,
-            ACTION_TYPES.STOP
-        );
-
-        const engine = new TaskEngine(model);
-        // we not waiting
-        engine.stop();
-
-        return model;
-    }
-
-    async pause(id) {
-        const model = await this.updateTaskState(
-            id,
-            TASK_STATUSES.PAUSED,
-            TASK_STATES.PAUSED,
-            ACTION_TYPES.PAUSE
-        );
-
-        const engine = new TaskEngine(model);
-        // we not waiting
-        engine.pause();
-
-        return model;
-    }
-
-    async resume(id) {
-        const model = await this.updateTaskState(
-            id,
-            TASK_STATUSES.RESUMED,
-            TASK_STATES.RUNNING,
-            ACTION_TYPES.RESUME
-        );
-
-        const engine = new TaskEngine(model);
-        // we not waiting
-        engine.resume();
-
-        return model;
-    }
-
-    async restart(id) {
-        const model = await this.updateTaskState(
-            id,
-            TASK_STATUSES.RESTARTED,
-            TASK_STATES.RUNNING,
-            ACTION_TYPES.RESTART
-        );
-
-        const engine = new TaskEngine(model);
-        // we not waiting
-        engine.restart();
-
-        return model;
+            return model;
+        };
     }
 }
 
+TaskService.createTaskMethod('start', TASK_STATUSES.STARTED, TASK_STATES.RUNNING, ACTION_TYPES.START);
+TaskService.createTaskMethod('stop', TASK_STATUSES.STOPPED, TASK_STATES.STOPPED, ACTION_TYPES.STOP);
+TaskService.createTaskMethod('pause', TASK_STATUSES.PAUSED, TASK_STATES.PAUSED, ACTION_TYPES.PAUSE);
+TaskService.createTaskMethod('resume', TASK_STATUSES.RESUMED, TASK_STATES.RUNNING, ACTION_TYPES.RESUME);
+TaskService.createTaskMethod('restart', TASK_STATUSES.RESTARTED, TASK_STATES.RUNNING, ACTION_TYPES.RESTART);
+
 module.exports = new TaskService();
+
