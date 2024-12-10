@@ -1,0 +1,52 @@
+/* Basic styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f4f4f9;
+}
+h1 {
+  text-align: center;
+}
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+.task-list {
+  margin-top: 20px;
+}
+.task-list ul {
+  padding: 0;
+}
+.task-list li {
+  background: #fff;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.actions-container {
+  display: flex;
+  gap: 10px;
+}
+button {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.delete-btn {
+  background-color: #dc3545;
+}
+.task-in-progress {
+  background-color: #f0ad4e;
+}
+.task-completed {
+  background-color: #5bc0de;
+}

@@ -1,0 +1,49 @@
+const TASK_TYPES = Object.freeze({
+    TASK: "TASK",
+    WORKFLOW: "WORKFLOW",
+    PIPELINE: "PIPELINE",
+    DAG: "DAG",
+    LINEAR: "LINEAR",
+    SERVICE: "SERVICE",
+    FUNCTION: "FUNCTION",
+    ACTION: "ACTION",
+});
+
+const TASK_STATES = Object.freeze({
+    IDLE: "IDLE",
+    RUNNING: "RUNNING",
+    COMPLETED: "COMPLETED",
+    FAILED: "FAILED",
+    STOPPED: "STOPPED",
+    PAUSED: "PAUSED",
+    RESTARTED: "RESTARTED",
+    CANCELLED: "CANCELLED",
+    WAITING: "WAITING",
+    SCHEDULED: "SCHEDULED",
+});
+
+const TASK_STATUSES = Object.freeze({
+    IDLE: "IDLE",
+    STARTED: "STARTED",
+    STOPPED: "STOPPED",
+    PAUSED: "PAUSED",
+    RESUMED: "RESUMED",
+    RESTARTED: "RESTARTED",
+    CANCELLED: "CANCELLED",
+    SCHEDULED: "SCHEDULED",
+});
+
+const ACTION_TYPES = Object.freeze({
+    CREATE: "CREATE",
+    DELETE: "DELETE",
+    UPDATE: "UPDATE",
+    GET: "GET",
+    GET_ALL: "GET_ALL",
+    START: "START",
+    STOP: "STOP",
+    PAUSE: "PAUSE",
+    RESUME: "RESUME",
+    RESTART: "RESTART",
+    CANCEL: "CANCEL",
+    SCHEDULE: "SCHEDULE",
+});
