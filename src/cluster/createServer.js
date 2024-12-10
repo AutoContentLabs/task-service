@@ -69,5 +69,5 @@ module.exports = async function createServer(type, port) {
     process.on("SIGINT", handleShutdown); // Handle Ctrl+C
     process.on("SIGTERM", handleShutdown); // Handle termination signals
 
-    return app;
+    return { server, app };
 }

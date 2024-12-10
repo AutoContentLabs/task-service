@@ -22,20 +22,19 @@ function start(withCluster = process.env.NODE_ENV == 'production', service) {
     /**
      * Graceful shutdown handler for the application.
      */
-    function handleShutdown(id) {
+    function handleShutdown(id, server) {
         logger.info(`Application [${id}] shutting down...`);
-        process.exit(0);
+        server.close(() => {
+            logger.info("Server has been shut down gracefully.");
+            process.exit(0); // Exit the process after the server is closed
+        });
     }
 
     if (withCluster) {
 
         if (cluster.isMaster) {
-            // Master process
-            process.on("SIGINT", () => handleShutdown("master"));
-            process.on("SIGTERM", () => handleShutdown("master"));
 
             // Start clustering
-
             for (let i = 0; i < workerCount; i++) {
                 cluster.fork();
             }
@@ -47,23 +46,35 @@ function start(withCluster = process.env.NODE_ENV == 'production', service) {
             });
 
             // Start cluster metrics server
-            createServer("cluster", basePort);
+            const { server } = createServer("cluster", basePort);
+
+            // Master process
+            process.on("SIGINT", () => handleShutdown({ id: "master", server }));
+            process.on("SIGTERM", () => handleShutdown({ id: "master", server }));
 
         } else {
-            // Worker process   
-            process.on("SIGINT", () => handleShutdown(cluster.worker.id));
-            process.on("SIGTERM", () => handleShutdown(cluster.worker.id));
 
             // Worker-specific metrics server
             const workerPort = basePort + cluster.worker.id;
-            createServer("worker", workerPort);
+
+            const { server } = createServer("worker", workerPort);
+
+            // Worker process   
+            process.on("SIGINT", () => handleShutdown({ id: cluster.worker.id, server }));
+            process.on("SIGTERM", () => handleShutdown({ id: cluster.worker.id, server }));
 
             // Worker process
             service.start();
         }
     } else {
         // Single process mode (for production or non-clustered environments)
-        createServer("single", basePort);
+        const { server } = createServer("single", basePort);
+
+        // single process
+        process.on("SIGINT", () => handleShutdown({ id: "single", server }));
+        process.on("SIGTERM", () => handleShutdown({ id: "single", server }));
+
+        // single process
         service.start();
     }
 }
