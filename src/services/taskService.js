@@ -82,7 +82,9 @@ class TaskService {
         TaskService.prototype["methods"]?.push(name);
 
         TaskService.prototype[name] = async function (id) {
+
             const model = await this.updateTaskState(id, status, state, action);
+
             const engine = new TaskEngine(model);
             engine[name]();
 
