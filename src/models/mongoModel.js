@@ -4,7 +4,7 @@
 const logger = require("../helpers/logger");
 const mongoose = require("mongoose");
 
-const TASK_TYPES = {
+const TASK_TYPES = Object.freeze({
     TASK: "TASK",
     WORKFLOW: "WORKFLOW",
     PIPELINE: "PIPELINE",
@@ -13,9 +13,9 @@ const TASK_TYPES = {
     SERVICE: "SERVICE",
     FUNCTION: "FUNCTION",
     ACTION: "ACTION",
-};
+});
 
-const TASK_STATES = {
+const TASK_STATES = Object.freeze({
     IDLE: "IDLE",
     RUNNING: "RUNNING",
     COMPLETED: "COMPLETED",
@@ -23,30 +23,36 @@ const TASK_STATES = {
     STOPPED: "STOPPED",
     PAUSED: "PAUSED",
     RESTARTED: "RESTARTED",
-};
+    CANCELLED: "CANCELLED",
+    WAITING: "WAITING",
+    SCHEDULED: "SCHEDULED",
+});
 
-const TASK_STATUSES = {
+const TASK_STATUSES = Object.freeze({
     IDLE: "IDLE",
     STARTED: "STARTED",
     STOPPED: "STOPPED",
     PAUSED: "PAUSED",
     RESUMED: "RESUMED",
     RESTARTED: "RESTARTED",
-};
+    CANCELLED: "CANCELLED",
+    SCHEDULED: "SCHEDULED",
+});
 
-const ACTION_TYPES = {
+const ACTION_TYPES = Object.freeze({
     CREATE: "CREATE",
     DELETE: "DELETE",
     UPDATE: "UPDATE",
     GET: "GET",
     GET_ALL: "GET_ALL",
-
     START: "START",
     STOP: "STOP",
     PAUSE: "PAUSE",
     RESUME: "RESUME",
     RESTART: "RESTART",
-};
+    CANCEL: "CANCEL",
+    SCHEDULE: "SCHEDULE",
+});
 
 // Error log schema
 const errorLogSchema = new mongoose.Schema({

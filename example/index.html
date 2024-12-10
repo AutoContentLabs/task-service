@@ -105,6 +105,9 @@
         STOPPED: "STOPPED",
         PAUSED: "PAUSED",
         RESTARTED: "RESTARTED",
+        CANCELLED: "CANCELLED",
+        WAITING: "WAITING",
+        SCHEDULED: "SCHEDULED",
       };
 
       const TASK_STATUSES = {
@@ -114,6 +117,8 @@
         PAUSED: "PAUSED",
         RESUMED: "RESUMED",
         RESTARTED: "RESTARTED",
+        CANCELLED: "CANCELLED",
+        SCHEDULED: "SCHEDULED",
       };
 
       const ACTION_TYPES = {
@@ -122,14 +127,15 @@
         UPDATE: "UPDATE",
         GET: "GET",
         GET_ALL: "GET_ALL",
-
         START: "START",
         STOP: "STOP",
         PAUSE: "PAUSE",
         RESUME: "RESUME",
         RESTART: "RESTART",
+        CANCEL: "CANCEL",
+        SCHEDULE: "SCHEDULE",
       };
-
+      
       // Create Task
       const createTaskForm = document.getElementById("createTaskForm");
       createTaskForm.addEventListener("submit", async (event) => {
@@ -268,7 +274,7 @@
             clearInterval(interval); // Stop checking after completion or 10 attempts
             getTasks(); // Refresh the task list after task completion
           }
-        }, 2000); // Check every 2 seconds
+        }, 500); // Check every 2 seconds
       };
 
       // Pause Task

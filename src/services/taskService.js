@@ -1,10 +1,8 @@
 // src\services\taskService.js
-const {
-    generateHeaders,
-} = require("@auto-content-labs/messaging-utils/src/helpers/helper");
+
 const { TaskEngine } = require("../orchestrator");
 const taskRepository = require("../repositories/taskRepository");
-const { sendSignal } = require("../utils/messaging");
+const { sendSignal, generateHeaders } = require("../utils/messaging");
 const {
     TASK_STATES,
     TASK_STATUSES,
@@ -12,6 +10,7 @@ const {
 } = require("../models/mongoModel");
 const logger = require("../helpers/logger");
 const EventEmitter = require('events');
+
 /**
  * @class TaskService
  * @description Manages task-related operations like state updates and action handling.
@@ -55,7 +54,6 @@ class TaskService extends EventEmitter {
     }
 
     async updateTaskState(id, status, state, action) {
-
         const model = await this.getById(id);
         if (!model) throw new Error('Task not found');
 
@@ -68,57 +66,25 @@ class TaskService extends EventEmitter {
             details: `${model.status} via API or EVENTS`,
         });
 
-        const result = this.update(id, model);
-
+        const result = await this.update(id, model);
         return result;
     }
 
-    /**
-     * Dynamically adds task methods to TaskService like start, stop, etc.
-     * @param {string} name - The name of the method to create (e.g., "start").
-     * @param {string} status - The status of the task to set.
-     * @param {string} state - The state of the task to update.
-     * @param {string} action - The action to be performed on the task.
-     */
     static createTaskMethod(name, status, state, action) {
-
-        /**
-         * for external call
-         * TaskService[<methodName>]
-         */
         TaskService.prototype["methods"]?.push(name);
 
-        /**
-         * 
-         * @param {*} id 
-         * @returns Task
-         */
         TaskService.prototype[name] = async function (id) {
-
             const model = await this.updateTaskState(id, status, state, action);
-
-            // request event
-            this.emit(status, model)
-            // external event for status
-            // this is for request
+            this.emit(status, model);
             sendSignal(model);
-
             const engine = new TaskEngine(model);
-
             engine[name]();
 
             for (const state of Object.values(TASK_STATES)) {
                 engine.on(state, (task) => {
-
-                    // volume
                     logger.notice(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name}`);
-
-                    // engine event
-                    this.emit(state, task)
-
-                    // external event for state
-                    // this is for engine
-                    sendSignal(model);
+                    this.emit(state, task);
+                    sendSignal(task);
                 });
             }
 
