@@ -11,9 +11,9 @@ const errorLogSchema = new mongoose.Schema({
 
 // Task schema
 const task = {
-    name: { type: String, required: true, unique: true }, // Task name (unique)
-    description: { type: String, required: false }, // Task description
-    headers: { type: mongoose.Schema.Types.Mixed }, // correlationId  traceId type(schemaType) for service tracing
+    name: { type: String, required: true, unique: true },
+    description: { type: String, required: false },
+    headers: { type: mongoose.Schema.Types.Mixed },
     type: {
         type: String,
         required: true,
@@ -22,13 +22,12 @@ const task = {
     },
     state: {
         type: String,
-        enum: ['IDLE', 'PENDING', 'RUNNING', 'COMPLETED', 'FAILED'],
+        enum: ['IDLE', 'RUNNING', 'COMPLETED', 'FAILED', 'PAUSED', 'STOPPED', 'RESTARTED'],
         default: 'IDLE'
     },
     status: {
         type: String,
-        enum: ['IDLE', 'IN_PROGRESS',
-            'STARTED', 'STOPPED', 'PAUSED', 'RESUMED', 'RESTARTED',],
+        enum: ['IDLE', 'STARTED', 'STOPPED', 'PAUSED', 'RESUMED', 'RESTARTED'],
         default: 'IDLE'
     },
     actions: [{
@@ -62,8 +61,8 @@ const task = {
         name: { type: String, required: true },
         timestamp: { type: Date, default: null }
     }],
-    error_log: [errorLogSchema], // Error log (can contain multiple error records)
-    version: { type: Number, default: 1 } // Version control
+    error_log: [errorLogSchema],
+    version: { type: Number, default: 1 }
 }
 
 // Task schema definition

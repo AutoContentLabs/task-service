@@ -31,11 +31,10 @@ class TaskService {
 
     async start(id) {
         const model = await this.getById(id);
-        if (!model) {
-            return null;
-        }
+        if (!model) return null;
 
-        model.status = "STARTED";
+        model.status = "STARTED";  // Task is started
+        model.state = "RUNNING";   // Task state is RUNNING
 
         model.actions.push({
             type: "START",
@@ -45,22 +44,20 @@ class TaskService {
 
         const result = this.update(id, model);
 
-        // send signal
         sendSignal(model);
 
-        // Task Engine
-        new TaskEngine(model);
+        const engine = new TaskEngine(model);
+        await engine.start();
 
         return result;
     }
 
     async stop(id) {
         const model = await this.getById(id);
-        if (!model) {
-            return null;
-        }
+        if (!model) return null;
 
-        model.status = "STOPPED";
+        model.status = "STOPPED";  // Task is stopped
+        model.state = "STOPPED";   // Task state is STOPPED
 
         model.actions.push({
             type: "STOP",
@@ -70,20 +67,20 @@ class TaskService {
 
         const result = this.update(id, model);
 
-        // send signal
         sendSignal(model);
 
-        // Task Engine
+        const engine = new TaskEngine(model);
+        await engine.stop();
 
         return result;
     }
+
     async pause(id) {
         const model = await this.getById(id);
-        if (!model) {
-            return null;
-        }
+        if (!model) return null;
 
-        model.status = "PAUSED";
+        model.status = "PAUSED";  // Task is paused
+        model.state = "PAUSED";   // Task state is PAUSED
 
         model.actions.push({
             type: "PAUSE",
@@ -93,21 +90,20 @@ class TaskService {
 
         const result = this.update(id, model);
 
-        // send signal
         sendSignal(model);
 
-        // Task Engine
+        const engine = new TaskEngine(model);
+        await engine.pause();
 
         return result;
     }
 
     async resume(id) {
         const model = await this.getById(id);
-        if (!model) {
-            return null;
-        }
+        if (!model) return null;
 
-        model.status = "RESUMED";
+        model.status = "RESUMED";  // Task is resumed
+        model.state = "RUNNING";   // Task state is running again
 
         model.actions.push({
             type: "RESUME",
@@ -117,37 +113,37 @@ class TaskService {
 
         const result = this.update(id, model);
 
-        // send signal
         sendSignal(model);
 
-        // Task Engine
+        const engine = new TaskEngine(model);
+        await engine.resume();
 
         return result;
     }
 
     async restart(id) {
         const model = await this.getById(id);
-        if (!model) {
-            return null;
-        }
+        if (!model) return null;
 
-        model.status = "RESTARTED";
+        model.status = "RESTARTED"; // Task is restarted
+        model.state = "RUNNING";    // Task state is running again
 
         model.actions.push({
             type: "RESTART",
             timestamp: new Date(),
-            details: "Task resumed via API",
+            details: "Task restarted via API",
         });
 
         const result = this.update(id, model);
 
-        // send signal
         sendSignal(model);
 
-        // Task Engine
+        const engine = new TaskEngine(model);
+        await engine.restart();
 
         return result;
     }
 }
+
 
 module.exports = new TaskService();
