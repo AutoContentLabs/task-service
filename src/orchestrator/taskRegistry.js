@@ -8,35 +8,35 @@ module.exports = class TaskRegistry {
 
   /**
    *
-   * @param {string} taskId
-   * @param {Task} task
+   * @param {string} id
+   * @param {Task} model
    */
-  registerTask(taskId, task) {
-    this.tasks.set(taskId, { ...task, status: "pending" });
+  registerTask(id, model) {
+    this.tasks.set(id, { ...model, status: "IDLE" });
   }
 
-  getTask(taskId) {
-    return this.tasks.get(taskId);
+  getTask(id) {
+    return this.tasks.get(id);
   }
 
-  updateTaskStatus(taskId, status) {
-    if (this.tasks.has(taskId)) {
-      this.tasks.get(taskId).status = status;
+  updateTaskStatus(id, status) {
+    if (this.tasks.has(id)) {
+      this.tasks.get(id).status = status;
     }
   }
 
-  updateTaskState(taskId, state) {
-    if (this.tasks.has(taskId)) {
-      this.tasks.get(taskId).state = state;
+  updateTaskState(id, state) {
+    if (this.tasks.has(id)) {
+      this.tasks.get(id).state = state;
     }
   }
 
-  removeTask(taskId) {
-    this.tasks.delete(taskId);
+  removeTask(id) {
+    this.tasks.delete(id);
   }
 
-  isTaskSuccessful(taskId) {
-    const task = getTask(taskId);
+  isTaskSuccessful(id) {
+    const task = getTask(id);
     return task && task.state === "COMPLETED";
   }
 };
