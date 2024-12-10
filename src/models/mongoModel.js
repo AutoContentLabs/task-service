@@ -45,7 +45,7 @@ const task = {
     }],
     dependencies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }], // Dependencies of other tasks
     on_start: [{
-        type: { type: String, required: true, enum: ['config', 'service', 'task', 'script'] },
+        type: { type: String, required: true, enum: ['CONFIG', 'SERVICE', 'TASK', 'SCRIPT'] },
         name: { type: String, required: true },
         parameters: { type: mongoose.Schema.Types.Mixed },
         input: { type: mongoose.Schema.Types.Mixed },
@@ -53,12 +53,12 @@ const task = {
         timestamp: { type: Date, default: null }
     }],
     on_failure: [{
-        type: { type: String, required: true, enum: ['function', 'rollback'] },
+        type: { type: String, required: true, enum: ['FUNCTION', 'ROLLBACK'] },
         name: { type: String, required: true },
         timestamp: { type: Date, default: null }
     }],
     on_success: [{
-        type: { type: String, required: true, enum: ['status', 'action', 'step'] },
+        type: { type: String, required: true, enum: ['STATUS', 'ACTION', 'STEP'] },
         name: { type: String, required: true },
         timestamp: { type: Date, default: null }
     }],
