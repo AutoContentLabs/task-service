@@ -6,8 +6,7 @@ createTaskForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const taskName = document.getElementById("taskName").value;
-  const taskDescription =
-    document.getElementById("taskDescription").value;
+  const taskDescription = document.getElementById("taskDescription").value;
 
   const task = {
     name: taskName,
@@ -50,7 +49,7 @@ const getTasks = async () => {
           <button onclick="stopTask('${task._id}')">Stop</button>
           <button onclick="resumeTask('${task._id}')">Resume</button>
           <button onclick="restartTask('${task._id}')">Restart</button>
-          <button onclick="deleteTask('${task._id}')" class="delete-btn">Delete</button> <!-- Silme butonu -->
+          <button onclick="deleteTask('${task._id}')" class="delete-btn">Delete</button>
         </div>
       `;
       taskList.appendChild(listItem);
@@ -68,13 +67,30 @@ const startTask = async (taskId) => {
     });
     const data = await response.json();
     if (response.ok) {
-      getTasks(); // Refresh the task list
+      getTasks(); // Refresh the task list immediately
+      await checkTaskStatus(taskId); // Check task status periodically
     } else {
       alert(`Error: ${data.message}`);
     }
   } catch (error) {
     console.error("Error starting task:", error);
   }
+};
+
+// Periodically check the task status after an action
+const checkTaskStatus = async (taskId) => {
+  // Check the task's status every 2 seconds for a max of 10 checks (20 seconds)
+  let checkCount = 0;
+  const interval = setInterval(async () => {
+    checkCount++;
+    const taskResponse = await fetch(`${apiUrl}/${taskId}`);
+    const task = await taskResponse.json();
+
+    if (task.status === "completed" || checkCount >= 10) {
+      clearInterval(interval); // Stop checking after completion or 10 attempts
+      getTasks(); // Refresh the task list after task completion
+    }
+  }, 2000); // Check every 2 seconds
 };
 
 // Pause Task
