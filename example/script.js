@@ -1,4 +1,47 @@
 const apiUrl = "http://localhost:53100/api/tasks"; // API URL
+const TASK_TYPES = {
+  TASK: "TASK",
+  WORKFLOW: "WORKFLOW",
+  PIPELINE: "PIPELINE",
+  DAG: "DAG",
+  LINEAR: "LINEAR",
+  SERVICE: "SERVICE",
+  FUNCTION: "FUNCTION",
+  ACTION: "ACTION",
+};
+
+const TASK_STATES = {
+  IDLE: "IDLE",
+  RUNNING: "RUNNING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  STOPPED: "STOPPED",
+  PAUSED: "PAUSED",
+  RESTARTED: "RESTARTED",
+};
+
+const TASK_STATUSES = {
+  IDLE: "IDLE",
+  STARTED: "STARTED",
+  STOPPED: "STOPPED",
+  PAUSED: "PAUSED",
+  RESUMED: "RESUMED",
+  RESTARTED: "RESTARTED",
+};
+
+const ACTION_TYPES = {
+  CREATE: "CREATE",
+  DELETE: "DELETE",
+  UPDATE: "UPDATE",
+  GET: "GET",
+  GET_ALL: "GET_ALL",
+
+  START: "START",
+  STOP: "STOP",
+  PAUSE: "PAUSE",
+  RESUME: "RESUME",
+  RESTART: "RESTART",
+};
 
 // Create Task
 const createTaskForm = document.getElementById("createTaskForm");
@@ -6,7 +49,8 @@ createTaskForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const taskName = document.getElementById("taskName").value;
-  const taskDescription = document.getElementById("taskDescription").value;
+  const taskDescription =
+    document.getElementById("taskDescription").value;
 
   const task = {
     name: taskName,
@@ -32,6 +76,7 @@ createTaskForm.addEventListener("submit", async (event) => {
 });
 
 // Get Tasks
+// Modify the getTasks function to show more details:
 const getTasks = async () => {
   try {
     const response = await fetch(apiUrl);
@@ -41,17 +86,58 @@ const getTasks = async () => {
 
     tasks.forEach((task) => {
       const listItem = document.createElement("li");
+      let taskClass = "";
+      let startDisabled = false;
+      let pauseDisabled = false;
+      let stopDisabled = false;
+      let resumeDisabled = false;
+
+      // Handle task state and status more explicitly
+      if (task.state === "RUNNING") {
+        taskClass = "task-in-progress";
+        startDisabled = true;
+        stopDisabled = false;
+        pauseDisabled = false;
+        resumeDisabled = true;
+      } else if (task.state === "PAUSED") {
+        taskClass = "task-paused";
+        startDisabled = true;
+        stopDisabled = false;
+        pauseDisabled = true;
+        resumeDisabled = false;
+      } else if (task.state === "COMPLETED") {
+        taskClass = "task-completed";
+        startDisabled = true;
+        stopDisabled = true;
+        pauseDisabled = true;
+        resumeDisabled = true;
+      } else if (task.state === "STOPPED") {
+        taskClass = "task-stopped";
+        startDisabled = false;
+        stopDisabled = true;
+        pauseDisabled = true;
+        resumeDisabled = false;
+      }
+
+      listItem.className = taskClass;
       listItem.innerHTML = `
-        <strong>${task.name}</strong> - ${task.state} - ${task.status} 
-        <div class="actions-container">
-          <button onclick="startTask('${task._id}')">Start</button>
-          <button onclick="pauseTask('${task._id}')">Pause</button>
-          <button onclick="stopTask('${task._id}')">Stop</button>
-          <button onclick="resumeTask('${task._id}')">Resume</button>
-          <button onclick="restartTask('${task._id}')">Restart</button>
-          <button onclick="deleteTask('${task._id}')" class="delete-btn">Delete</button>
-        </div>
-      `;
+  <strong class="name">${task.name}</strong>
+  <strong class="state">${task.state}</strong>
+  <strong class="status">${task.status}</strong>
+  <div class="actions-container">
+    <button onclick="startTask('${task._id}')" ${startDisabled ? "disabled" : ""
+        }>Start</button>
+    <button onclick="pauseTask('${task._id}')" ${pauseDisabled ? "disabled" : ""
+        }>Pause</button>
+    <button onclick="stopTask('${task._id}')" ${stopDisabled ? "disabled" : ""
+        }>Stop</button>
+    <button onclick="resumeTask('${task._id}')" ${resumeDisabled ? "disabled" : ""
+        }>Resume</button>
+    <button onclick="restartTask('${task._id}')">Restart</button>
+    <button onclick="deleteTask('${task._id
+        }')" class="delete-btn">Delete</button>
+  </div>
+`;
       taskList.appendChild(listItem);
     });
   } catch (error) {

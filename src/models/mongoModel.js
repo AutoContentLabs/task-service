@@ -42,7 +42,6 @@ const ACTION_TYPES = {
     GET_ALL: "GET_ALL",
 
     START: "START",
-    START: "START",
     STOP: "STOP",
     PAUSE: "PAUSE",
     RESUME: "RESUME",
