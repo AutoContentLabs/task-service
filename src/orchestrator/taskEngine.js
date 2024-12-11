@@ -1,3 +1,4 @@
+// src\orchestrator\taskEngine.js
 const logger = require("../helpers/logger");
 const TaskExecutor = require("./taskExecutor");
 const TaskState = require("./taskState");
@@ -25,13 +26,44 @@ module.exports = class TaskEngine extends EventEmitter {
     }
   }
 
+  async waitForDependencies() {
+    for (const dependency of this.task.dependencies) {
+      logger.info(`Checking dependency - ${dependency.name}`);
+
+      if (!dependency) {
+        throw new Error(`Dependency task with id ${dependency._id} not found.`);
+      }
+
+      // Wait for the dependency to be completed, using a more efficient approach
+      await new Promise((resolve, reject) => {
+        const checkDependency = () => {
+          if (dependency.state === TASK_STATES.COMPLETED) {
+            resolve();
+          } else {
+            setTimeout(checkDependency, 1000);  // Recheck after 1 second
+          }
+        };
+        checkDependency();
+      });
+    }
+  }
+
   async start() {
     try {
       logger.info(`Starting task - ${this.task.name}`);
+
+      // 1. Update task state to 'WAITING' before starting execution
       await this.state.updateState(TASK_STATES.WAITING);
+
+      // 2. Check dependencies and wait for completion
+      await this.waitForDependencies();
+
+      // 3. Proceed with starting the task
       await this.state.updateState(TASK_STATES.RUNNING);
       this.emit(ACTION_TYPES.START, this.task);
       await this.executor.execute();
+
+      // 4. Mark task as completed once the execution is finished
       await this.state.updateState(TASK_STATES.COMPLETED);
       this.emit(TASK_STATES.COMPLETED, this.task);
     } catch (error) {

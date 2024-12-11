@@ -2,7 +2,7 @@
  * @file src/orchestrator/taskExecutor.js
  */
 const logger = require("../helpers/logger");
-const { TASK_TYPES } = require("../models/mongoModel");
+const { TASK_TYPES, TASK_STATES } = require("../models/mongoModel");
 module.exports = class TaskExecutor {
   /**
    * @param {Object} task - The task object to be executed
@@ -39,7 +39,7 @@ module.exports = class TaskExecutor {
    * Execute a regular task with dependency control
    */
   async executeTask() {
-    // 1. Öncelikle dependencies kontrol ediliyor
+    // 1.  Check dependencies first
     for (const dependency of this.task.dependencies) {
 
       const { name, type, _id } = dependency
@@ -49,9 +49,9 @@ module.exports = class TaskExecutor {
         throw new Error(`Dependency task with id ${_id} not found.`);
       }
 
-      if (dependency.state !== "COMPLETED") {
+      if (dependency.state !== TASK_STATES.COMPLETED) {
         logger.info(`Waiting for dependency - ${type} - ${name} - ${_id}`);
-        while (dependency.state !== "COMPLETED") {
+        while (dependency.state !== TASK_STATES.COMPLETED) {
           await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 saniyede bir kontrol
         }
       }
