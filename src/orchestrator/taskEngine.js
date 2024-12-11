@@ -1,9 +1,9 @@
 const logger = require("../helpers/logger");
 const TaskExecutor = require("./taskExecutor");
 const TaskState = require("./taskState");
-const { executeOnFailure, TASK_STATES, TASK_STATUSES, ACTION_TYPES } = require("../models/mongoModel");
+const { TASK_STATES, TASK_STATUSES, ACTION_TYPES } = require("../models/mongoModel");
 const EventEmitter = require('events');
-
+const executeOnFailure = require("./executeOnFailure")
 module.exports = class TaskEngine extends EventEmitter {
   constructor(task) {
     super();
@@ -13,7 +13,7 @@ module.exports = class TaskEngine extends EventEmitter {
   }
 
   async handleFailure(error) {
-    logger.error("Task failed", error);
+    logger.error("handleFailure : Task failed", error);
     const failureHook = this.task.on_failure?.[0];
     if (failureHook) {
       await executeOnFailure(failureHook);
@@ -30,7 +30,7 @@ module.exports = class TaskEngine extends EventEmitter {
     } catch (error) {
       await this.state.updateState(TASK_STATES.FAILED);
       await this.handleFailure(error);
-      this.emit(TASK_STATES.FAILED, error);
+      this.emit(TASK_STATES.FAILED, this.task, error);
     }
   }
 
@@ -49,9 +49,9 @@ module.exports = class TaskEngine extends EventEmitter {
   async resume() {
     await this.state.updateState(TASK_STATES.RUNNING);
     this.task.status = TASK_STATUSES.RESUMED;
-    await this.executor.execute();  
+    await this.executor.execute();
     await this.state.updateState(TASK_STATES.COMPLETED);
-    this.task.status = TASK_STATUSES.COMPLETED;  
+    this.task.status = TASK_STATUSES.COMPLETED;
     this.emit(TASK_STATES.RUNNING, this.task);
     this.emit(TASK_STATES.COMPLETED, this.task);
   }

@@ -81,10 +81,16 @@ class TaskService extends EventEmitter {
             engine[name]();
 
             for (const state of Object.values(TASK_STATES)) {
-                engine.on(state, (task) => {
-                    logger.notice(`${task.state} - ${task.headers.correlationId} - ${task.type} - ${task.name}`);
-                    this.emit(state, task);
-                    sendSignal(task);
+                engine.on(state, (model, error) => {
+                    const message = `${model.state} - ${model.headers.correlationId} - ${model.type} - ${model.name}`;
+                    if (error) {
+                        logger.error(`${message} - ${error}`)
+                    }
+                    else {
+                        logger.notice(message);
+                    }
+                    this.emit(state, model);
+                    sendSignal(model);
                 });
             }
 

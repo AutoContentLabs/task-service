@@ -40,10 +40,19 @@ module.exports = class TaskExecutor {
   async executeTask() {
     // Logic to execute a single task
     logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
-
+    const { type, name, _id } = this.task.on_start[0];
+    console.log(`on_start:_id`, _id)
+    console.log(`on_start:type`, type)
+    console.log(`on_start:name`, name)
     // You could add specific code here that actually performs the task logic
     // test
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const { type:typeS, name:nameS, _id:idS } = this.task.on_success[0];
+    console.log(`on_success:_id`, idS)
+    console.log(`on_success:type`, typeS)
+    console.log(`on_success:name`, nameS)
+    
   }
 
   /**

@@ -165,23 +165,10 @@ const Task = mongoose.model("Task", taskSchema);
 const Workflow = mongoose.model("Workflow", workflowSchema);
 const Pipeline = mongoose.model("Pipeline", pipelineSchema);
 
-// Callback (Dynamic Function Invoker)
-const executeOnFailure = async (failureHook) => {
-    try {
-        const { type, name } = failureHook;
-        if (type === "rollback" && typeof global[name] === "function") {
-            await global[name]();
-        }
-    } catch (err) {
-        logger.error("Rollback execution failed:", err.message);
-    }
-};
-
 module.exports = {
     Task,
     Workflow,
     Pipeline,
-    executeOnFailure,
     TASK_TYPES,
     TASK_STATES,
     TASK_STATUSES,
