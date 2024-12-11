@@ -1,9 +1,11 @@
 /**
  * @file src\repositories\taskRepository.js
  */
+const EventEmitter = require('events');
 const { Task } = require('../models/mongoModel');
 
-class TaskRepository {
+class TaskRepository extends EventEmitter {
+
     /**
      * 
      * @param {Task} model 
@@ -14,7 +16,11 @@ class TaskRepository {
     }
 
     async update(id, model) {
-        return await Task.findByIdAndUpdate(id, model, { new: true }).populate("dependencies");
+        const updatedTask = await Task.findByIdAndUpdate(id, model, { new: true }).populate("dependencies");
+        if (updatedTask) {
+            this.emit('taskUpdated', updatedTask);
+        }
+        return updatedTask;
     }
 
     async deleteById(id) {

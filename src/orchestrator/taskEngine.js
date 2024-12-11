@@ -34,19 +34,22 @@ module.exports = class TaskEngine extends EventEmitter {
         throw new Error(`Dependency task with id ${dependency._id} not found.`);
       }
 
-      // Wait for the dependency to be completed, using a more efficient approach
       await new Promise((resolve, reject) => {
-        const checkDependency = () => {
-          if (dependency.state === TASK_STATES.COMPLETED) {
+        const checkDependency = (updatedTask) => {
+          if (updatedTask._id.toString() === dependency._id.toString() &&
+            updatedTask.state === TASK_STATES.COMPLETED) {
+            logger.info(`Dependency ${dependency.name} is completed.`);
+            this.taskRepository.off('taskUpdated', checkDependency);
             resolve();
-          } else {
-            setTimeout(checkDependency, 1000);  // Recheck after 1 second
           }
         };
-        checkDependency();
+
+        this.taskRepository.on('taskUpdated', checkDependency);
       });
     }
   }
+
+
 
   async start() {
     try {
