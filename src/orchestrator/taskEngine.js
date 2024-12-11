@@ -34,20 +34,21 @@ module.exports = class TaskEngine extends EventEmitter {
         throw new Error(`Dependency task with id ${dependency._id} not found.`);
       }
 
-      await new Promise((resolve, reject) => {
-        const checkDependency = (updatedTask) => {
-          if (updatedTask._id.toString() === dependency._id.toString() &&
-            updatedTask.state === TASK_STATES.COMPLETED) {
-            logger.info(`Dependency ${dependency.name} is completed.`);
-            this.taskRepository.off('taskUpdated', checkDependency);
-            resolve();
-          }
-        };
+      while (true) {
+        // Bağımlılığı veritabanından tekrar kontrol et
+        const updatedDependency = await this.taskRepository.getById(dependency._id);
 
-        this.taskRepository.on('taskUpdated', checkDependency);
-      });
+        if (updatedDependency && updatedDependency.state === TASK_STATES.COMPLETED) {
+          logger.info(`Dependency ${dependency.name} is completed.`);
+          break; // Bağımlılık tamamlandı, döngüden çık
+        }
+
+        logger.info(`Waiting for dependency - ${dependency.name}`);
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 saniye bekle
+      }
     }
   }
+
 
 
 
