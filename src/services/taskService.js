@@ -2,7 +2,7 @@
  * @file src/services/taskService.js
  */
 
-const logger = require("../helpers/logger")
+const logger = require("../helpers/logger");
 const EventEmitter = require("events");
 const {
     ACTION_TYPES,
@@ -13,7 +13,7 @@ const {
 const { generateHeaders } = require("../utils/messaging");
 
 class TaskService extends EventEmitter {
-    constructor(taskRepository) {
+    constructor(taskRepository, taskEngine) {
         super();
 
         if (TaskService.instance) {
@@ -22,33 +22,92 @@ class TaskService extends EventEmitter {
 
         TaskService.instance = this;
         this.taskRepository = taskRepository;
+        this.taskEngine = taskEngine;
         this.watch();
     }
 
     watch = async () => {
         this.taskRepository.on("UPDATED", (updatedModel) => {
-            logger.debug(`REPO UPDATED - name: ${updatedModel.name} - status: ${updatedModel.status} - state: ${updatedModel.state}`, {
-                name: updatedModel.name,
-                status: updatedModel.status,
-                state: updatedModel.state,
-            })
+            const { _id: id, name, status, state, actions } = updatedModel;
+            const lastActionType = actions[actions.length - 1].type;
+            logger.debug(
+                `REPO UPDATED - id: ${id} action: ${lastActionType} - name: ${name} - status: ${status} - state: ${state}`,
+                {
+                    id,
+                    name,
+                    status,
+                    state,
+                    action: lastActionType
+                }
+            );
+            switch (lastActionType) {
+                case ACTION_TYPES.START:
+                    this.taskEngine.start();
+                    break;
+                case ACTION_TYPES.PAUSE:
+                    this.taskEngine.pauseTask();
+                    break;
+                case ACTION_TYPES.RESUME:
+                    this.taskEngine.resumeTask();
+                    break;
+                case ACTION_TYPES.STOP:
+                    this.taskEngine.stopTask();
+                    break;
+                case "CANCEL":
+                    this.taskEngine.cancelTask();
+                    break;
+                case ACTION_TYPES.RESTART:
+                    this.taskEngine.restartTask();
+                    break;
+
+                default:
+                    break;
+            }
         });
 
         this.taskRepository.on("CREATED", (updatedModel) => {
-            logger.debug(`Task CREATED - name: ${updatedModel.name} - status: ${updatedModel.status} - state: ${updatedModel.state}`, {
-                name: updatedModel.name,
-                status: updatedModel.status,
-                state: updatedModel.state,
+            const { _id: id, name, status, state } = updatedModel;
+            logger.debug(
+                `Task CREATED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
+                {
+                    id,
+                    name,
+                    status,
+                    state,
+                }
+            );
+
+            this.taskEngine.createTask({
+                id,
+                name,
+                priority: 1,
+                maxAttempts: 3,
+                dependencies: [],
             });
         });
 
         this.taskRepository.on("DELETED", (updatedModel) => {
-            logger.debug(`Task DELETED - name: ${updatedModel.name} - status: ${updatedModel.status} - state: ${updatedModel.state}`, {
-                name: updatedModel.name,
-                status: updatedModel.status,
-                state: updatedModel.state,
-            });
+            const { _id: id, name, status, state } = updatedModel;
+            logger.debug(
+                `Task DELETED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
+                {
+                    id,
+                    name,
+                    status,
+                    state,
+                }
+            );
         });
+
+        this.taskEngine.on("taskSuccess", (task) =>
+            console.log(`🎉 Event: Task [${task.id}] SUCCESS`)
+        );
+        this.taskEngine.on("taskFailed", (task) =>
+            console.log(`⚠️ Event: Task [${task.id}] FAILED`)
+        );
+        this.taskEngine.on("taskCancelled", (task) =>
+            console.log(`🚫 Event: Task [${task.id}] CANCELLED`)
+        );
     };
 
     create = async (model) => {
