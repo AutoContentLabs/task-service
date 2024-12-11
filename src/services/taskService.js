@@ -37,7 +37,7 @@ class TaskService extends EventEmitter {
                     name,
                     status,
                     state,
-                    action: lastActionType
+                    action: lastActionType,
                 }
             );
             switch (lastActionType) {
@@ -66,7 +66,7 @@ class TaskService extends EventEmitter {
         });
 
         this.taskRepository.on("CREATED", (updatedModel) => {
-            const { _id: id, name, status, state } = updatedModel;
+            const { _id: id, name, status, state, dependencies } = updatedModel;
             logger.debug(
                 `Task CREATED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
                 {
@@ -76,13 +76,13 @@ class TaskService extends EventEmitter {
                     state,
                 }
             );
-
+            const dependenciesArray = dependencies.map((task) => task._id.toString());
             this.taskEngine.createTask({
                 id,
                 name,
                 priority: 1,
                 maxAttempts: 3,
-                dependencies: [],
+                dependencies: dependenciesArray,
             });
         });
 

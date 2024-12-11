@@ -19,9 +19,11 @@ class TaskRepository extends EventEmitter {
     create = async (model) => {
         const createdModel = await Task.create(model);
 
-        this.emit("CREATED", createdModel);
+        const population = await this.getById(createdModel._id);
 
-        return createdModel;
+        this.emit("CREATED", population);
+
+        return population;
     };
 
     update = async (id, model) => {
