@@ -9,7 +9,7 @@ const {
     ACTION_TYPES,
 } = require("../models/mongoModel");
 const logger = require("../helpers/logger");
-const EventEmitter = require('events');
+const EventEmitter = require("events");
 
 /**
  * @class TaskService
@@ -20,11 +20,11 @@ const EventEmitter = require('events');
  * @method {Function} getById - Fetches a task by its ID.
  * @method {Function} getAll - Fetches all tasks.
  * @method {Function} createTaskMethod - Dynamically creates task methods like start, stop, etc.
- * @method {Function} start - 
+ * @method {Function} start -
  * @method {Function} stop -
  * @method {Function} pause -
- * @method {Function} resume - 
- * @method {Function} restart - 
+ * @method {Function} resume -
+ * @method {Function} restart -
  */
 class TaskService extends EventEmitter {
     constructor() {
@@ -55,7 +55,7 @@ class TaskService extends EventEmitter {
 
     async updateTaskState(id, status, state, action) {
         const model = await this.getById(id);
-        if (!model) throw new Error('Task not found');
+        if (!model) throw new Error("Task not found");
 
         model.status = status;
         model.state = state;
@@ -77,16 +77,15 @@ class TaskService extends EventEmitter {
             const model = await this.updateTaskState(id, status, state, action);
             this.emit(status, model);
             sendSignal(model);
-            const engine = new TaskEngine(model);
+            const engine = new TaskEngine(model, taskRepository);
             engine[name]();
 
             for (const state of Object.values(TASK_STATES)) {
                 engine.on(state, (model, error) => {
                     const message = `${model.state} - ${model.headers.correlationId} - ${model.type} - ${model.name}`;
                     if (error) {
-                        logger.error(`${message} - ${error}`)
-                    }
-                    else {
+                        logger.error(`${message} - ${error}`);
+                    } else {
                         logger.notice(message);
                     }
                     this.emit(state, model);
@@ -99,11 +98,35 @@ class TaskService extends EventEmitter {
     }
 }
 
-TaskService.createTaskMethod('start', TASK_STATUSES.STARTED, TASK_STATES.RUNNING, ACTION_TYPES.START);
-TaskService.createTaskMethod('stop', TASK_STATUSES.STOPPED, TASK_STATES.STOPPED, ACTION_TYPES.STOP);
-TaskService.createTaskMethod('pause', TASK_STATUSES.PAUSED, TASK_STATES.PAUSED, ACTION_TYPES.PAUSE);
-TaskService.createTaskMethod('resume', TASK_STATUSES.RESUMED, TASK_STATES.RUNNING, ACTION_TYPES.RESUME);
-TaskService.createTaskMethod('restart', TASK_STATUSES.RESTARTED, TASK_STATES.RUNNING, ACTION_TYPES.RESTART);
+TaskService.createTaskMethod(
+    "start",
+    TASK_STATUSES.STARTED,
+    TASK_STATES.RUNNING,
+    ACTION_TYPES.START
+);
+TaskService.createTaskMethod(
+    "stop",
+    TASK_STATUSES.STOPPED,
+    TASK_STATES.STOPPED,
+    ACTION_TYPES.STOP
+);
+TaskService.createTaskMethod(
+    "pause",
+    TASK_STATUSES.PAUSED,
+    TASK_STATES.PAUSED,
+    ACTION_TYPES.PAUSE
+);
+TaskService.createTaskMethod(
+    "resume",
+    TASK_STATUSES.RESUMED,
+    TASK_STATES.RUNNING,
+    ACTION_TYPES.RESUME
+);
+TaskService.createTaskMethod(
+    "restart",
+    TASK_STATUSES.RESTARTED,
+    TASK_STATES.RUNNING,
+    ACTION_TYPES.RESTART
+);
 
 module.exports = new TaskService();
-

@@ -17,9 +17,9 @@ module.exports = class TaskState {
    */
   async updateState(newState) {
     this.task.state = newState;
-    // You could also add more logic here to handle any side effects (like logging or sending notifications)
-    logger.info(`Task ${this.task.name} is now ${newState}`);
-    // For example, you can also update the database here if required
-    await this.task.save(); // This will update the task in MongoDB
+    logger.info(`Task ${this.task.name} is now in state: ${newState}`);
+    if (typeof this.task.save === 'function') {
+      await this.task.save();
+    }
   }
 };

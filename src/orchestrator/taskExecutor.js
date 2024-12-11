@@ -1,14 +1,15 @@
 /**
  * @file src/orchestrator/taskExecutor.js
  */
-const logger = require("../helpers/logger")
+const logger = require("../helpers/logger");
 const { TASK_TYPES } = require("../models/mongoModel");
 module.exports = class TaskExecutor {
   /**
    * @param {Object} task - The task object to be executed
    */
-  constructor(task) {
+  constructor(task, taskRepository) {
     this.task = task;
+    this.taskRepository = taskRepository;
   }
 
   /**
@@ -35,24 +36,50 @@ module.exports = class TaskExecutor {
   }
 
   /**
-   * Execute a regular task
+   * Execute a regular task with dependency control
    */
   async executeTask() {
-    // Logic to execute a single task
-    logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
-    const { type, name, _id } = this.task.on_start[0];
-    console.log(`on_start:_id`, _id)
-    console.log(`on_start:type`, type)
-    console.log(`on_start:name`, name)
-    // You could add specific code here that actually performs the task logic
-    // test
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // 1. Öncelikle dependencies kontrol ediliyor
+    for (const dependency of this.task.dependencies) {
 
-    const { type:typeS, name:nameS, _id:idS } = this.task.on_success[0];
-    console.log(`on_success:_id`, idS)
-    console.log(`on_success:type`, typeS)
-    console.log(`on_success:name`, nameS)
-    
+      const { name, type, _id } = dependency
+      logger.info(`executeTask : Checking dependency - ${type} - ${name} - ${_id}`);
+
+      if (!dependency) {
+        throw new Error(`Dependency task with id ${_id} not found.`);
+      }
+
+      if (dependency.state !== "COMPLETED") {
+        logger.info(`Waiting for dependency - ${type} - ${name} - ${_id}`);
+        while (dependency.state !== "COMPLETED") {
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 saniyede bir kontrol
+        }
+      }
+    }
+
+    // 2. onStart Hook'u çalıştırılıyor
+    for (const hook of this.task.on_start) {
+      const { type, name, _id } = hook;
+      logger.info(`Executing onStart hook - ${type} - ${name} - ${_id}`);
+      if (typeof global[name] === "function") {
+        await global[name]();
+      }
+    }
+
+    // 3. Task Logic
+    logger.notice(
+      `Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`
+    );
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // 2 saniye bekleme
+
+    // 4. onSuccess Hook'u çalıştırılıyor
+    for (const hook of this.task.on_success) {
+      const { type, name, _id } = hook;
+      logger.info(`Executing onSuccess hook - ${type} - ${name} - ${_id}`);
+      if (typeof global[name] === "function") {
+        await global[name]();
+      }
+    }
   }
 
   /**
@@ -60,7 +87,9 @@ module.exports = class TaskExecutor {
    */
   async executeWorkflow() {
     // Logic to execute a single task
-    logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
+    logger.notice(
+      `Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`
+    );
 
     // You could add specific code here that actually performs the task logic
     // test
@@ -71,9 +100,10 @@ module.exports = class TaskExecutor {
    * Execute a pipeline
    */
   async executePipeline() {
-
     // Logic to execute a single task
-    logger.notice(`Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`);
+    logger.notice(
+      `Executing - ${this.task.headers.correlationId} - ${this.task.type} - ${this.task.name}`
+    );
 
     // You could add specific code here that actually performs the task logic
     // test
