@@ -1,117 +1,165 @@
-// src\orchestrator\taskEngine.js
-const logger = require("../helpers/logger");
-const TaskExecutor = require("./taskExecutor");
-const TaskState = require("./taskState");
-const {
-  TASK_STATES,
-  TASK_STATUSES,
-  ACTION_TYPES,
-} = require("../models/mongoModel");
-const EventEmitter = require("events");
-const executeOnFailure = require("./executeOnFailure");
-module.exports = class TaskEngine extends EventEmitter {
-  constructor(task, taskRepository) {
-    super();
-    this.task = task;
-    this.state = new TaskState(task);
-    this.executor = new TaskExecutor(task, taskRepository);
-    this.taskRepository = taskRepository;
-  }
+const EventEmitter = require('events');
 
-  async handleFailure(error) {
-    logger.error("handleFailure : Task failed", error);
-    const failureHook = this.task.on_failure?.[0];
-    if (failureHook) {
-      await executeOnFailure(failureHook);
+class TaskEngine extends EventEmitter {
+    constructor() {
+        super();
+        this.tasks = new Map(); // Tüm görevler
+        this.runningTasks = new Set(); // Çalışan görevler
     }
-  }
 
-  async waitForDependencies() {
-    for (const dependency of this.task.dependencies) {
-      logger.info(`Checking dependency - ${dependency.name}`);
+    // 📌 Create Task
+    createTask(task) {
+        if (!task.id) throw new Error('Task must have an id');
+        task.status = 'PENDING';
+        task.attempts = 0;
+        task.priority = task.priority || 0;
+        this.tasks.set(task.id, task);
+        console.log(`🟢 Task [${task.id}] created`);
+        return task;
+    }
 
-      if (!dependency) {
-        throw new Error(`Dependency task with id ${dependency._id} not found.`);
-      }
+    // 📌 Update Task
+    updateTask(taskId, updates) {
+        const task = this.tasks.get(taskId);
+        if (!task) throw new Error(`Task [${taskId}] not found`);
+        Object.assign(task, updates);
+        console.log(`🟡 Task [${taskId}] updated`);
+        return task;
+    }
 
-      while (true) {
-        // Bağımlılığı veritabanından tekrar kontrol et
-        const updatedDependency = await this.taskRepository.getById(dependency._id);
-
-        if (updatedDependency && updatedDependency.state === TASK_STATES.COMPLETED) {
-          logger.info(`Dependency ${dependency.name} is completed.`);
-          break; // Bağımlılık tamamlandı, döngüden çık
+    // 📌 Delete Task
+    deleteTask(taskId) {
+        if (this.tasks.delete(taskId)) {
+            console.log(`🗑️ Task [${taskId}] deleted`);
+        } else {
+            console.warn(`Task [${taskId}] not found`);
         }
-
-        logger.info(`Waiting for dependency - ${dependency.name}`);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 saniye bekle
-      }
     }
-  }
 
-
-
-
-  async start() {
-    try {
-      logger.info(`Starting task - ${this.task.name}`);
-
-      // 1. Update task state to 'WAITING' before starting execution
-      await this.state.updateState(TASK_STATES.WAITING);
-
-      // 2. Check dependencies and wait for completion
-      await this.waitForDependencies();
-
-      // 3. Proceed with starting the task
-      await this.state.updateState(TASK_STATES.RUNNING);
-      this.emit(ACTION_TYPES.START, this.task);
-      await this.executor.execute();
-
-      // 4. Mark task as completed once the execution is finished
-      await this.state.updateState(TASK_STATES.COMPLETED);
-      this.emit(TASK_STATES.COMPLETED, this.task);
-    } catch (error) {
-      await this.state.updateState(TASK_STATES.FAILED);
-      await this.handleFailure(error);
-      this.emit(TASK_STATES.FAILED, this.task, error);
+    // 📌 Start Tasks
+    start() {
+        this.runAvailableTasks();
     }
-  }
 
-  async stop() {
-    await this.state.updateState(TASK_STATES.STOPPED);
-    this.task.status = TASK_STATUSES.STOPPED;
-    this.emit(TASK_STATES.STOPPED, this.task);
-  }
+    // 📌 Run Available Tasks
+    runAvailableTasks() {
+        const availableTasks = Array.from(this.tasks.values())
+            .filter(task => task.status === 'PENDING' && this.canRunTask(task))
+            .sort((a, b) => b.priority - a.priority);
 
-  async pause() {
-    await this.state.updateState(TASK_STATES.PAUSED);
-    this.task.status = TASK_STATUSES.PAUSED;
-    this.emit(TASK_STATES.PAUSED, this.task);
-  }
-
-  async resume() {
-    await this.state.updateState(TASK_STATES.RUNNING);
-    this.task.status = TASK_STATUSES.RESUMED;
-    await this.executor.execute();
-    await this.state.updateState(TASK_STATES.COMPLETED);
-    this.task.status = TASK_STATUSES.COMPLETED;
-    this.emit(TASK_STATES.RUNNING, this.task);
-    this.emit(TASK_STATES.COMPLETED, this.task);
-  }
-
-  async restart() {
-    try {
-      await this.state.updateState(TASK_STATES.RESTARTED);
-      this.task.status = TASK_STATUSES.RESTARTED;
-      this.emit(TASK_STATUSES.RESTARTED, this.task);
-      await this.executor.execute();
-      await this.state.updateState(TASK_STATES.COMPLETED);
-      this.task.status = TASK_STATUSES.COMPLETED;
-      this.emit(TASK_STATES.COMPLETED, this.task);
-    } catch (error) {
-      await this.state.updateState(TASK_STATES.FAILED);
-      await this.handleFailure(error);
-      this.emit(TASK_STATES.FAILED, error);
+        availableTasks.forEach(task => this.runTask(task));
     }
-  }
-};
+
+    // 📌 Check if task can run
+    canRunTask(task) {
+        if (!task.dependencies || task.dependencies.length === 0) return true;
+        return task.dependencies.every(depId => {
+            const depTask = this.tasks.get(depId);
+            return depTask && depTask.status === 'SUCCESS';
+        });
+    }
+
+    // 📌 Run a task
+    runTask(task) {
+        if (task.status !== 'PENDING') return;
+        task.status = 'RUNNING';
+        this.runningTasks.add(task.id);
+        console.log(`🔷 Task [${task.id}] is RUNNING...`);
+
+        setTimeout(() => {
+            const isSuccess = Math.random() > 0.3; 
+            if (isSuccess) {
+                this.completeTask(task);
+            } else {
+                this.failTask(task);
+            }
+        }, task.duration || 1000); 
+    }
+
+    // 📌 Complete Task
+    completeTask(task) {
+        task.status = 'SUCCESS';
+        this.runningTasks.delete(task.id);
+        console.log(`✅ Task [${task.id}] is SUCCESS`);
+        this.emit('taskSuccess', task);
+        this.runAvailableTasks();
+    }
+
+    // 📌 Fail Task
+    failTask(task) {
+        task.attempts++;
+        if (task.attempts >= task.maxAttempts) {
+            task.status = 'FAILED';
+            this.emit('taskFailed', task);
+        } else {
+            console.log(`🔁 Retrying Task [${task.id}]...`);
+            setTimeout(() => {
+                task.status = 'PENDING';
+                this.runTask(task);
+            }, 2000);
+        }
+    }
+
+    // 📌 Stop Task
+    stopTask(taskId) {
+        const task = this.tasks.get(taskId);
+        if (task && task.status === 'RUNNING') {
+            task.status = 'STOPPED';
+            console.log(`⏹️ Task [${taskId}] stopped`);
+        }
+    }
+
+    // 📌 Pause Task
+    pauseTask(taskId) {
+        const task = this.tasks.get(taskId);
+        if (task && task.status === 'RUNNING') {
+            task.status = 'PAUSED';
+            console.log(`⏸️ Task [${taskId}] paused`);
+        }
+    }
+
+    // 📌 Resume Task
+    resumeTask(taskId) {
+        const task = this.tasks.get(taskId);
+        if (task && task.status === 'PAUSED') {
+            task.status = 'RUNNING';
+            console.log(`▶️ Task [${taskId}] resumed`);
+            this.runTask(task);
+        }
+    }
+
+    // 📌 Restart Task
+    restartTask(taskId) {
+        const task = this.tasks.get(taskId);
+        if (task) {
+            task.status = 'PENDING';
+            task.attempts = 0;
+            console.log(`🔄 Task [${taskId}] restarted`);
+            this.runTask(task);
+        }
+    }
+
+    // 📌 Cancel Task
+    cancelTask(taskId) {
+        const task = this.tasks.get(taskId);
+        if (task && task.status === 'RUNNING') {
+            task.status = 'CANCELLED';
+            this.runningTasks.delete(task.id);
+            console.log(`🚫 Task [${taskId}] cancelled`);
+            this.emit('taskCancelled', task);
+        }
+    }
+
+    // 📌 Show All Tasks
+    showTasks() {
+        console.table(Array.from(this.tasks.values()).map(task => ({
+            id: task.id,
+            name: task.name,
+            status: task.status,
+            attempts: task.attempts,
+            priority: task.priority
+        })));
+    }
+}
+
+module.exports = TaskEngine;

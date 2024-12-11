@@ -1,40 +1,54 @@
 /**
- * @file src\repositories\taskRepository.js
+ * @file src/repositories/taskRepository.js
  */
-const EventEmitter = require('events');
-const { Task } = require('../models/mongoModel');
+
+const EventEmitter = require("events");
+const { Task } = require("../models/mongoModel");
 
 class TaskRepository extends EventEmitter {
+    constructor() {
+        super();
 
-    /**
-     * 
-     * @param {Task} model 
-     * @returns 
-     */
-    async create(model) {
-        return await Task.create(model);
-    }
-
-    async update(id, model) {
-        const updatedTask = await Task.findByIdAndUpdate(id, model, { new: true }).populate("dependencies");
-        if (updatedTask) {
-            this.emit('taskUpdated', updatedTask);
+        if (TaskRepository.instance) {
+            return TaskRepository.instance;
         }
-        return updatedTask;
+
+        TaskRepository.instance = this;
     }
 
-    async deleteById(id) {
-        return await Task.findByIdAndDelete(id);
-    }
+    create = async (model) => {
+        const createdModel = await Task.create(model);
 
-    async getById(id) {
-        return await Task.findById(id).populate("dependencies");
-    }
+        this.emit("CREATED", createdModel);
 
-    async getAll() {
+        return createdModel;
+    };
+
+    update = async (id, model) => {
+        const updatedModel = await Task.findByIdAndUpdate(id, model, { new: true })
+            .populate("dependencies")
+            .populate("actions");
+
+        this.emit("UPDATED", updatedModel);
+
+        return updatedModel;
+    };
+
+    deleteById = async (id) => {
+        const deletedModel = await Task.findByIdAndDelete(id);
+
+        this.emit("DELETED", deletedModel);
+
+        return deletedModel;
+    };
+
+    getById = async (id) => {
+        return await Task.findById(id).populate("dependencies").populate("actions");
+    };
+
+    getAll = async () => {
         return await Task.find();
-    }
-
+    };
 }
 
-module.exports = new TaskRepository();
+module.exports = TaskRepository;

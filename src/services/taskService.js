@@ -1,132 +1,125 @@
-// src\services\taskService.js
-
-const { TaskEngine } = require("../orchestrator");
-const taskRepository = require("../repositories/taskRepository");
-const { sendSignal, generateHeaders } = require("../utils/messaging");
-const {
-    TASK_STATES,
-    TASK_STATUSES,
-    ACTION_TYPES,
-} = require("../models/mongoModel");
-const logger = require("../helpers/logger");
-const EventEmitter = require("events");
-
 /**
- * @class TaskService
- * @description Manages task-related operations like state updates and action handling.
- * @method {Function} create - Creates a new task in the repository.
- * @method {Function} update - Updates an existing task in the repository.
- * @method {Function} deleteById - Deletes a task by its ID.
- * @method {Function} getById - Fetches a task by its ID.
- * @method {Function} getAll - Fetches all tasks.
- * @method {Function} createTaskMethod - Dynamically creates task methods like start, stop, etc.
- * @method {Function} start -
- * @method {Function} stop -
- * @method {Function} pause -
- * @method {Function} resume -
- * @method {Function} restart -
+ * @file src/services/taskService.js
  */
+
+const logger = require("../helpers/logger")
+const EventEmitter = require("events");
+const {
+    ACTION_TYPES,
+    TASK_STATUSES,
+    TASK_STATES,
+    TASK_TYPES,
+} = require("../models/mongoModel");
+const { generateHeaders } = require("../utils/messaging");
+
 class TaskService extends EventEmitter {
-    constructor() {
+    constructor(taskRepository) {
         super();
+
+        if (TaskService.instance) {
+            return TaskService.instance;
+        }
+
+        TaskService.instance = this;
+        this.taskRepository = taskRepository;
+        this.watch();
     }
 
-    async create(model) {
-        // correlationId  traceId type(schemaType) for service tracing
+    watch = async () => {
+        this.taskRepository.on("UPDATED", (updatedModel) => {
+            logger.debug(`REPO UPDATED - name: ${updatedModel.name} - status: ${updatedModel.status} - state: ${updatedModel.state}`, {
+                name: updatedModel.name,
+                status: updatedModel.status,
+                state: updatedModel.state,
+            })
+        });
+
+        this.taskRepository.on("CREATED", (updatedModel) => {
+            logger.debug(`Task CREATED - name: ${updatedModel.name} - status: ${updatedModel.status} - state: ${updatedModel.state}`, {
+                name: updatedModel.name,
+                status: updatedModel.status,
+                state: updatedModel.state,
+            });
+        });
+
+        this.taskRepository.on("DELETED", (updatedModel) => {
+            logger.debug(`Task DELETED - name: ${updatedModel.name} - status: ${updatedModel.status} - state: ${updatedModel.state}`, {
+                name: updatedModel.name,
+                status: updatedModel.status,
+                state: updatedModel.state,
+            });
+        });
+    };
+
+    create = async (model) => {
         model.headers = generateHeaders("Task");
-        return await taskRepository.create(model);
-    }
+        return await this.taskRepository.create(model);
+    };
 
-    async update(id, model) {
-        return await taskRepository.update(id, model);
-    }
+    update = async (id, model) => {
+        return await this.taskRepository.update(id, model);
+    };
 
-    async deleteById(id) {
-        return await taskRepository.deleteById(id);
-    }
+    deleteById = async (id) => {
+        return await this.taskRepository.deleteById(id);
+    };
 
-    async getById(id) {
-        return await taskRepository.getById(id);
-    }
+    getById = async (id) => {
+        return await this.taskRepository.getById(id);
+    };
 
-    async getAll() {
-        return await taskRepository.getAll();
-    }
+    getAll = async () => {
+        return await this.taskRepository.getAll();
+    };
+}
 
-    async updateTaskState(id, status, state, action) {
+const createTaskMethod = async (name, action, status, state) => {
+    TaskService.prototype[name] = async function (id) {
         const model = await this.getById(id);
-        if (!model) throw new Error("Task not found");
-
-        model.status = status;
-        model.state = state;
 
         model.actions.push({
             type: action,
             timestamp: new Date(),
-            details: `${model.status} via API or EVENTS`,
         });
 
-        const result = await this.update(id, model);
-        return result;
-    }
+        model.status = status;
+        model.state = state;
 
-    static createTaskMethod(name, status, state, action) {
-        TaskService.prototype["methods"]?.push(name);
+        const updatedModel = await this.update(model.id, model);
 
-        TaskService.prototype[name] = async function (id) {
-            const model = await this.updateTaskState(id, status, state, action);
-            this.emit(status, model);
-            sendSignal(model);
-            const engine = new TaskEngine(model, taskRepository);
-            engine[name]();
+        return updatedModel;
+    };
+};
 
-            for (const state of Object.values(TASK_STATES)) {
-                engine.on(state, (model, error) => {
-                    const message = `${model.state} - ${model.headers.correlationId} - ${model.type} - ${model.name}`;
-                    if (error) {
-                        logger.error(`${message} - ${error}`);
-                    } else {
-                        logger.notice(message);
-                    }
-                    this.emit(state, model);
-                    sendSignal(model);
-                });
-            }
-
-            return model;
-        };
-    }
-}
-
-TaskService.createTaskMethod(
+createTaskMethod(
     "start",
+    ACTION_TYPES.START,
     TASK_STATUSES.STARTED,
-    TASK_STATES.RUNNING,
-    ACTION_TYPES.START
+    TASK_STATES.WAITING
 );
-TaskService.createTaskMethod(
+createTaskMethod(
     "stop",
+    ACTION_TYPES.STOP,
     TASK_STATUSES.STOPPED,
-    TASK_STATES.STOPPED,
-    ACTION_TYPES.STOP
+    TASK_STATES.STOPPED
 );
-TaskService.createTaskMethod(
+createTaskMethod(
     "pause",
+    ACTION_TYPES.PAUSE,
     TASK_STATUSES.PAUSED,
-    TASK_STATES.PAUSED,
-    ACTION_TYPES.PAUSE
+    TASK_STATES.PAUSED
 );
-TaskService.createTaskMethod(
+createTaskMethod(
     "resume",
+    ACTION_TYPES.RESUME,
     TASK_STATUSES.RESUMED,
-    TASK_STATES.RUNNING,
-    ACTION_TYPES.RESUME
+    TASK_STATES.RUNNING
 );
-TaskService.createTaskMethod(
+createTaskMethod(
     "restart",
+    ACTION_TYPES.RESTART,
     TASK_STATUSES.RESTARTED,
-    TASK_STATES.RUNNING,
-    ACTION_TYPES.RESTART
+    TASK_STATES.RUNNING
 );
 
-module.exports = new TaskService();
+module.exports = TaskService;

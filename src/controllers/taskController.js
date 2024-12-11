@@ -1,101 +1,117 @@
-// src\controllers\taskController.js
-const taskService = require('../services/taskService');
+/**
+ * @file src/controllers/taskController.js
+ */
 
-class TaskController {
+const EventEmitter = require("events");
 
-    async create(req, res) {
+class TaskController extends EventEmitter {
+    constructor(taskService) {
+        super();
+
+        if (TaskController.instance) {          
+            return TaskController.instance;
+        }
+
+        TaskController.instance = this;
+        this.taskService = taskService;
+    }
+
+    create = async (req, res) => {
         try {
-            const newModel = await taskService.create(req.body);
+            const newModel = await this.taskService.create(req.body);
             res.status(201).json(newModel);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async update(req, res) {
+    update = async (req, res) => {
         try {
-            const updatedModel = await taskService.update(req.params.id, req.body);
+            const updatedModel = await this.taskService.update(
+                req.params.id,
+                req.body
+            );
             res.status(200).json(updatedModel);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async deleteById(req, res) {
-        try {           
-            const result = await taskService.deleteById(req.params.id);                
+    deleteById = async (req, res) => {
+        try {
+            const result = await this.taskService.deleteById(req.params.id);
             if (result) {
                 res.status(204).end();
-            } else {               
-                res.status(404).json({ error: 'Task not found' });
+            } else {
+                res.status(404).json({ error: "Task not found" });
             }
-        } catch (error) {           
+        } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
-          
-    async getById(req, res) {
+
+    getById = async (req, res) => {
         try {
-            const task = await taskService.getById(req.params.id);
+            const task = await this.taskService.getById(req.params.id);
             res.status(200).json(task);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async getAll(req, res) {
+    getAll = async (req, res) => {
         try {
-            const list = await taskService.getAll();
+            const list = await this.taskService.getAll();
             res.status(200).json(list);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async start(req, res) {
+    start = async (req, res) => {
         try {
-            const model = await taskService.start(req.params.id);
-            res.status(200).json({ message: 'started successfully', model });
+            const model = await this.taskService.start(req.params.id);
+            res.status(200).json({ message: "started successfully", model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async stop(req, res) {
+    stop = async (req, res) => {
         try {
-            const model = await taskService.stop(req.params.id);
-            res.status(200).json({ message: 'stopped successfully', model });
+            const model = await this.taskService.stop(req.params.id);
+            res.status(200).json({ message: "stopped successfully", model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async pause(req, res) {
+    pause = async (req, res) => {
         try {
-            const model = await taskService.pause(req.params.id);
-            res.status(200).json({ message: 'paused successfully', model });
+            const model = await this.taskService.pause(req.params.id);
+            res.status(200).json({ message: "paused successfully", model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async resume(req, res) {
+    resume = async (req, res) => {
         try {
-            const model = await taskService.resume(req.params.id);
-            res.status(200).json({ message: 'resume successfully', model });
+            const model = await this.taskService.resume(req.params.id);
+            res.status(200).json({ message: "resume successfully", model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async restart(req, res) {
+    restart = async (req, res) => {
         try {
-            const model = await taskService.restart(req.params.id);
-            res.status(200).json({ message: 'restart successfully', model });
+            const model = await this.taskService.restart(req.params.id);
+            res.status(200).json({ message: "restart successfully", model });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 }
 
-module.exports = new TaskController();
+module.exports = TaskController;
