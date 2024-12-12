@@ -1,5 +1,6 @@
 const EventEmitter = require("events");
 const { TASK_STATES } = require("../models/mongoModel");
+
 class TaskEngine extends EventEmitter {
     constructor() {
         super();
@@ -15,25 +16,25 @@ class TaskEngine extends EventEmitter {
         task.priority = task.priority || 0;
         task.dependencies = task.dependencies || []; // Ensure dependencies are defined as an array
         this.tasks.set(task.id, task);
-        console.log(`🟢 Task         [${task.id}] ${task.name} created`);
+        console.log(`🟢 Task [${task.id}] ${task.name} created`);
         return task;
     }
 
     // 📌 Update Task
     updateTask(taskId, updates) {
         const task = this.tasks.get(taskId);
-        if (!task) throw new Error(`Task       [${taskId}] ${task.name} not found`);
+        if (!task) throw new Error(`Task [${taskId}] not found`);
         Object.assign(task, updates);
-        console.log(`🟡 Task          [${taskId}] updated`);
+        console.log(`🟡 Task [${taskId}] updated`);
         return task;
     }
 
     // 📌 Delete Task
     deleteTask(taskId) {
         if (this.tasks.delete(taskId)) {
-            console.log(`🗑️ Task       [${taskId}] deleted`);
+            console.log(`🗑️ Task [${taskId}] deleted`);
         } else {
-            console.warn(`Task         [${taskId}] not found`);
+            console.warn(`Task [${taskId}] not found`);
         }
     }
 
@@ -87,7 +88,7 @@ class TaskEngine extends EventEmitter {
         if (task.status !== TASK_STATES.WAITING) return;
         task.status = TASK_STATES.RUNNING;
         this.runningTasks.add(task.id);
-        console.log(`🔷 Task         [${task.id}] ${task.name} is RUNNING...`);
+        console.log(`🔷 Task [${task.id}] ${task.name} is RUNNING...`);
 
         setTimeout(() => {
             const isSuccess = Math.random() > 0.3;
@@ -103,7 +104,7 @@ class TaskEngine extends EventEmitter {
     completeTask(task) {
         task.status = TASK_STATES.COMPLETED;
         this.runningTasks.delete(task.id);
-        console.log(`✅ Task         [${task.id}] ${task.name} is SUCCESS`);
+        console.log(`✅ Task [${task.id}] ${task.name} is SUCCESS`);
         this.emit(TASK_STATES.COMPLETED, task);
         this.runAvailableTasks();
     }
@@ -115,7 +116,7 @@ class TaskEngine extends EventEmitter {
             task.status = TASK_STATES.FAILED;
             this.emit(TASK_STATES.FAILED, task);
         } else {
-            console.log(`🔁 Retrying      [${task.id}] ${task.name}...`);
+            console.log(`🔁 Retrying Task [${task.id}] ${task.name}...`);
             setTimeout(() => {
                 task.status = TASK_STATES.WAITING;
                 this.runTask(task);
@@ -128,7 +129,7 @@ class TaskEngine extends EventEmitter {
         const task = this.tasks.get(taskId);
         if (task && task.status === TASK_STATES.RUNNING) {
             task.status = TASK_STATES.STOPPED;
-            console.log(`⏹️ Task      [${taskId}] ${task.name} stopped`);
+            console.log(`⏹️ Task [${taskId}] ${task.name} stopped`);
         }
     }
 
@@ -137,7 +138,7 @@ class TaskEngine extends EventEmitter {
         const task = this.tasks.get(taskId);
         if (task && task.status === TASK_STATES.RUNNING) {
             task.status = TASK_STATES.PAUSED;
-            console.log(`⏸️ Task      [${taskId}] ${task.name} paused`);
+            console.log(`⏸️ Task [${taskId}] ${task.name} paused`);
         }
     }
 
@@ -146,7 +147,7 @@ class TaskEngine extends EventEmitter {
         const task = this.tasks.get(taskId);
         if (task && task.status === TASK_STATES.PAUSED) {
             task.status = TASK_STATES.RUNNING;
-            console.log(`▶️ Task      [${taskId}] ${task.name} resumed`);
+            console.log(`▶️ Task [${taskId}] ${task.name} resumed`);
             this.runTask(task);
         }
     }
@@ -157,7 +158,7 @@ class TaskEngine extends EventEmitter {
         if (task) {
             task.status = TASK_STATES.WAITING;
             task.attempts = 0;
-            console.log(`🔄 Task      [${taskId}] ${task.name} restarted`);
+            console.log(`🔄 Task [${taskId}] ${task.name} restarted`);
             this.runTask(task);
         }
     }
@@ -168,7 +169,7 @@ class TaskEngine extends EventEmitter {
         if (task && task.status === TASK_STATES.RUNNING) {
             task.status = TASK_STATES.CANCELLED;
             this.runningTasks.delete(task.id);
-            console.log(`🚫 Task     [${taskId}] ${task.name} cancelled`);
+            console.log(`🚫 Task [${taskId}] ${task.name} cancelled`);
             this.emit(TASK_STATES.CANCELLED, task);
         }
     }
@@ -183,6 +184,27 @@ class TaskEngine extends EventEmitter {
                 attempts: task.attempts,
                 priority: task.priority,
             }))
+        );
+    }
+
+    // 📌 Log Task Summary (Extended)
+    logTaskSummary() {
+        const completedTasks = Array.from(this.tasks.values()).filter(
+            (task) => task.status === TASK_STATES.COMPLETED
+        );
+        const failedTasks = Array.from(this.tasks.values()).filter(
+            (task) => task.status === TASK_STATES.FAILED
+        );
+
+        console.log(`📊 Task Summary:`);
+        console.log(`✅ Completed: ${completedTasks.length}`);
+        console.log(`❌ Failed: ${failedTasks.length}`);
+        console.log(`⏸️ Paused: ${this.runningTasks.size}`);
+        console.log(
+            `🛑 Stopped: ${Array.from(this.tasks.values()).filter(
+                (task) => task.status === TASK_STATES.STOPPED
+            ).length
+            }`
         );
     }
 }

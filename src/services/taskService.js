@@ -35,6 +35,7 @@ class TaskService extends EventEmitter {
     }
 
     watch = async () => {
+        // Dinleme işlemleri ve olay tetikleyiciler burada
         this.taskRepository.on("UPDATED", async (updatedModel) => {
             const { _id: id, name, status, state, actions } = updatedModel;
             this.emit("UPDATED", updatedModel);
@@ -147,6 +148,7 @@ const createTaskMethod = (name, action, status, state) => {
     };
 };
 
+// Task durumları için fonksiyonlar oluşturuluyor
 createTaskMethod(
     "start",
     ACTION_TYPES.START,
