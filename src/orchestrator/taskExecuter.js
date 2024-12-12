@@ -36,13 +36,50 @@ module.exports = class TaskExecutor extends EventEmitter {
         }
     };
 
-    hook = async (item) => {
-        const { _id, type, name, parameters, input, output } = item;
-        if (type === "function") {
-            if (typeof this.taskLogic[name] === "function") {
-                console.log("💻  Staring function...", id.toString());
-                await this.taskLogic[name](parameters, input, output);
-            }
+    hooker = async (fish) => {
+        const { _id, type, name, parameters, input, output } = fish;
+        switch (type) {
+            case "CONFIG":
+                console.log("**  Staring CONFIG...", _id.toString());
+                break;
+
+            case "SERVICE":
+                console.log("**  Staring SERVICE...", _id.toString());
+                break;
+
+            case "SCRIPT":
+                if (typeof this.taskLogic[name] === "function") {
+                    console.log("💻  Staring SCRIPT...", _id.toString());
+                    await this.taskLogic[name](parameters, input, output);
+                }
+                break;
+
+            case "FUNCTION":
+                if (typeof this.taskLogic[name] === "function") {
+                    console.log("💻  Staring function...", _id.toString());
+                    await this.taskLogic[name](parameters, input, output);
+                }
+                break;
+
+            case "ROLLBACK":
+                console.log("**  Staring ROLLBACK...", _id.toString());
+                break;
+
+            case "STATUS":
+                console.log("**  Staring STATUS...", _id.toString());
+                break;
+
+            case "ACTION":
+                console.log("**  Staring ACTION...", _id.toString());
+                break;
+
+            case "STEP":
+                console.log("**  Staring STEP...", _id.toString());
+                break;
+
+            default:
+                console.log(`**  Staring ??????${type}...`, _id.toString());
+                break;
         }
     };
 
@@ -54,19 +91,19 @@ module.exports = class TaskExecutor extends EventEmitter {
             // onStart Hook
             for (const hook of task.on_start) {
                 console.log("🪝  Hook on_start...", id.toString());
-                hook(hook);
+                this.hooker(hook);
             }
 
             // onSuccess Hook
             for (const hook of task.on_success) {
                 console.log("🪝  Hook on_success...", id.toString());
-                hook(hook);
+                this.hooker(hook);
             }
         } catch (error) {
             // on_failure Hook
             for (const hook of task.on_failure) {
                 console.log("🪝  Hook on_failure...", id.toString());
-                hook(hook);
+                this.hooker(hook);
             }
         }
     };
