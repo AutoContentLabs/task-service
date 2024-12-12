@@ -238,6 +238,7 @@ const deleteTask = async (taskId) => {
     });
     if (response.ok) {
       getTasks(); // Refresh the task list
+      fillTaskDependencies(); // Refresh dependencies list
     } else {
       alert("Error deleting task");
     }

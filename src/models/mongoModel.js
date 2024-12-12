@@ -131,8 +131,6 @@ const baseTaskSchema = {
     version: { type: Number, default: 1 },
 };
 
-// Task schema definition
-baseTaskSchema.type.default = TASK_TYPES.TASK;
 const taskSchema = new mongoose.Schema(
     {
         ...baseTaskSchema,
@@ -140,35 +138,11 @@ const taskSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Workflow schema
-baseTaskSchema.type.default = TASK_TYPES.WORKFLOW;
-const workflowSchema = new mongoose.Schema(
-    {
-        ...baseTaskSchema,
-        steps: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }], // Referencing tasks instead of embedding them
-    },
-    { timestamps: true }
-);
-
-// Pipeline schema
-baseTaskSchema.type.default = TASK_TYPES.PIPELINE;
-const pipelineSchema = new mongoose.Schema(
-    {
-        ...baseTaskSchema,
-        steps: [{ type: mongoose.Schema.Types.ObjectId, ref: "Workflow" }], // Referencing workflows instead of embedding them
-    },
-    { timestamps: true }
-);
-
 // Creating the models
 const Task = mongoose.model("Task", taskSchema);
-const Workflow = mongoose.model("Workflow", workflowSchema);
-const Pipeline = mongoose.model("Pipeline", pipelineSchema);
 
 module.exports = {
     Task,
-    Workflow,
-    Pipeline,
     TASK_TYPES,
     TASK_STATES,
     TASK_STATUSES,

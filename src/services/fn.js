@@ -4,13 +4,13 @@
  * @description function
  */
 
-const logger = require('../helpers/logger');
+const logger = require("../helpers/logger");
 
-const { events, listenMessage } = require('../utils/messaging');
+const { listen } = require("../utils/listener");
 
 const { eventFunction } = require("../events/eventFunction");
 
-const async = require('async');
+const async = require("async");
 // Get the concurrent parallel limit from the environment variable, default to 5 if not set
 const MAX_PARALLEL_TASKS = parseInt(process.env.MAX_PARALLEL_TASKS) || 5;
 
@@ -25,22 +25,18 @@ async function start() {
     // Start time for overall processing
     global.startTime = Date.now();
 
-    // The event we will listen to.
-    const eventName = events.tasks;
-
     // Listen to incoming data source requests
-    await listenMessage(eventName, eventFunction);
+    await listen(eventFunction);
 
-    logger.info(`Listener started on event: ${eventName}`);
-
+    logger.info(`Listener started`);
   } catch (error) {
-    logger.error(`Application failed to start:${eventName}`, error);
+    logger.error(`Application failed`, error);
   }
 }
 
 /**
-* Graceful shutdown handler for the application.
-*/
+ * Graceful shutdown handler for the application.
+ */
 function handleShutdown() {
   logger.info("Application shutting down...");
   process.exit(0);

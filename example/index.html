@@ -8,29 +8,33 @@
   </head>
   <body>
     <div class="container">
-      <h1>Task Manager</h1>
+      <header class="header">
+        <h1>Task Manager</h1>
+      </header>
 
       <!-- Task Create Form -->
-      <h2>Create Task</h2>
-      <form id="createTaskForm">
-        <label for="taskName">Task Name:</label>
-        <input type="text" id="taskName" name="taskName" required />
+      <section class="task-create box">
+        <h2>Create Task</h2>
+        <form id="createTaskForm" class="form">
+          <label for="taskName">Task Name:</label>
+          <input type="text" id="taskName" name="taskName" required />
 
-        <label for="taskDescription">Task Description:</label>
-        <input type="text" id="taskDescription" name="taskDescription" />
+          <label for="taskDescription">Task Description:</label>
+          <input type="text" id="taskDescription" name="taskDescription" />
 
-        <label for="taskDependencies">Dependencies:</label>
-        <select id="taskDependencies" name="taskDependencies" multiple>
-          <!-- Tasks will be populated dynamically here -->
-        </select>
+          <label for="taskDependencies">Dependencies:</label>
+          <select id="taskDependencies" name="taskDependencies" multiple>
+            <!-- Tasks will be populated dynamically here -->
+          </select>
 
-        <button type="submit">Create Task</button>
-      </form>
-
-      <div id="createTaskStatus"></div>
+          <button type="submit">Create Task</button>
+        </form>
+        <div id="createTaskStatus"></div>
+      </section>
 
       <!-- Filter Tasks -->
-      <div>
+      <section class="task-filter box">
+        <h2>Filter Tasks</h2>
         <label for="taskFilter">Filter by state:</label>
         <select id="taskFilter">
           <option value="all">All</option>
@@ -38,19 +42,20 @@
           <option value="paused">Paused</option>
           <option value="completed">Completed</option>
         </select>
-      </div>
+      </section>
 
-      <!-- Loading Indicator -->
-      <div id="loadingIndicator" style="display:none;">Loading...</div>
-
-      <!-- Task Actions -->
-      <h2>Actions</h2>
-      <div class="task-list">
+      <!-- Task List -->
+      <section class="task-list box">
+        <h2>Task List</h2>
         <ul id="taskList"></ul>
-      </div>
+      </section>
 
-      <!-- Buttons for fetching tasks -->
-      <button id="getTasksBtn">Get Tasks</button>
+      <!-- Actions Section -->
+      <section class="actions box">
+        <h2>Actions</h2>
+        <button id="getTasksBtn">Get Tasks</button>
+        <div id="loadingIndicator" style="display:none;">Loading...</div>
+      </section>
     </div>
 
     <script src="types.js"></script>

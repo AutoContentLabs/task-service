@@ -1,5 +1,5 @@
 // src\utils\events.js
 module.exports = {
-    tasks: "tasks",
-    task_event: "task_event",
+    TASKS: "TASKS",
+    TASK_EVENT: "TASK_EVENT",
 };

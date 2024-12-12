@@ -3,7 +3,7 @@
  * @description Event Task
  */
 const logger = require("../helpers/logger");
-const { sendMessage, events } = require("../utils/messaging");
+const { sendPair } = require("../utils/sender");
 const {
   create,
   update,
@@ -15,7 +15,7 @@ const {
   pause,
   resume,
   restart,
-  on
+  on,
 } = require("../services/taskService");
 const { TASK_STATES, TASK_STATUSES } = require("../models/mongoModel");
 /**
@@ -93,7 +93,7 @@ async function eventFunction(pair) {
     //   on(status, (model) => {
     //     // no waiting
     //     // send response for status
-    //     sendMessage(events.task_event, { key, value: model, headers });
+    //     sendPair({ key, value: model, headers });
     //   })
     // }
 
@@ -103,17 +103,16 @@ async function eventFunction(pair) {
     //   on(state, (model) => {
     //     // no waiting
     //     // send response for state
-    //     sendMessage(events.task_event, { key, value: model, headers });
+    //     sendPair({ key, value: model, headers });
     //   })
     // }
-
-
   } catch (error) {
     // Handle errors and send failure response
     const errorMessage = error instanceof Error ? error.message : `${error}`;
 
     logger.error(
-      `action request - ${headers.correlationId} - ${error.name || "Unknown Error"}`,
+      `action request - ${headers.correlationId} - ${error.name || "Unknown Error"
+      }`,
       errorMessage
     );
 
