@@ -90,14 +90,23 @@ class TaskEngine extends EventEmitter {
         this.runningTasks.add(task.id);
         console.log(`🔷 Task [${task.id}] ${task.name} is RUNNING...`);
 
-        setTimeout(() => {
-            const isSuccess = Math.random() > 0.3;
-            if (isSuccess) {
-                this.completeTask(task);
-            } else {
-                this.failTask(task);
-            }
-        }, task.duration || 5000);
+        // Task execution happens here (real business logic)
+        const isSuccess = this.executeTaskLogic(task);
+        if (isSuccess) {
+            this.completeTask(task);
+        } else {
+            this.failTask(task);
+        }
+    }
+
+    // 📌 Task Execution Logic
+    executeTaskLogic(task) {
+        // Place the real business logic of the task here.
+        // For example: interacting with APIs, processing data, etc.
+        console.log(`🔄 Executing logic for Task [${task.id}] ${task.name}`);
+
+        // Placeholder: success or failure simulation (replace with actual logic)
+        return Math.random() > 0.3; // 70% chance to succeed
     }
 
     // 📌 Complete Task
@@ -117,10 +126,8 @@ class TaskEngine extends EventEmitter {
             this.emit(TASK_STATES.FAILED, task);
         } else {
             console.log(`🔁 Retrying Task [${task.id}] ${task.name}...`);
-            setTimeout(() => {
-                task.status = TASK_STATES.WAITING;
-                this.runTask(task);
-            }, 2000);
+            task.status = TASK_STATES.WAITING;
+            this.runTask(task);
         }
     }
 
