@@ -11,6 +11,7 @@ const {
     TASK_TYPES,
 } = require("../models/mongoModel");
 const { generateHeaders } = require("../helpers/helper");
+const { sendModel } = require("../utils/sender");
 
 class TaskService extends EventEmitter {
     constructor(taskRepository, taskEngine) {
@@ -38,6 +39,8 @@ class TaskService extends EventEmitter {
         this.taskRepository.on("UPDATED", async (updatedModel) => {
             const { _id: id, name, status, state, actions } = updatedModel;
             this.emit("UPDATED", updatedModel);
+            // send update signal
+            sendModel(updatedModel);
             this.safeExecute(async () => {
                 const lastActionType = actions[actions.length - 1]?.type;
                 logger.debug(
@@ -70,7 +73,7 @@ class TaskService extends EventEmitter {
                 on_start,
                 on_success,
                 on_failure,
-                type
+                type,
             } = updatedModel;
             this.safeExecute(async () => {
                 logger.debug(
@@ -89,7 +92,7 @@ class TaskService extends EventEmitter {
                     on_start,
                     on_success,
                     on_failure,
-                    type
+                    type,
                 });
             });
         });
