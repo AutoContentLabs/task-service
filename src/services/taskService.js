@@ -30,7 +30,7 @@ class TaskService extends EventEmitter {
         this.taskRepository.on("UPDATED", (updatedModel) => {
             const { _id: id, name, status, state, actions } = updatedModel;
             try {
-                const lastActionType = actions[actions.length - 1].type;
+                const lastActionType = actions[actions.length - 1]?.type;
                 logger.debug(
                     `REPO UPDATED - id: ${id} action: ${lastActionType} - name: ${name} - status: ${status} - state: ${state}`,
                     {
@@ -54,13 +54,12 @@ class TaskService extends EventEmitter {
                     case ACTION_TYPES.STOP:
                         this.taskEngine.stopTask();
                         break;
-                    case "CANCEL":
+                    case ACTION_TYPES.CANCEL:
                         this.taskEngine.cancelTask();
                         break;
                     case ACTION_TYPES.RESTART:
                         this.taskEngine.restartTask();
                         break;
-
                     default:
                         break;
                 }
