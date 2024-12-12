@@ -26,138 +26,123 @@ class TaskService extends EventEmitter {
         this.watch();
     }
 
+    async safeExecute(fn) {
+        try {
+            return await fn();
+        } catch (error) {
+            logger.error("Error executing function", { error });
+        }
+    }
+
     watch = async () => {
-        this.taskRepository.on("UPDATED", (updatedModel) => {
+        this.taskRepository.on("UPDATED", async (updatedModel) => {
             const { _id: id, name, status, state, actions } = updatedModel;
-            try {
+            this.safeExecute(async () => {
                 const lastActionType = actions[actions.length - 1]?.type;
                 logger.debug(
                     `REPO UPDATED - id: ${id} action: ${lastActionType} - name: ${name} - status: ${status} - state: ${state}`,
-                    {
-                        id,
-                        name,
-                        status,
-                        state,
-                        action: lastActionType,
-                    }
+                    { id, name, status, state, action: lastActionType }
                 );
-                switch (lastActionType) {
-                    case ACTION_TYPES.START:
-                        this.taskEngine.start();
-                        break;
-                    case ACTION_TYPES.PAUSE:
-                        this.taskEngine.pauseTask();
-                        break;
-                    case ACTION_TYPES.RESUME:
-                        this.taskEngine.resumeTask();
-                        break;
-                    case ACTION_TYPES.STOP:
-                        this.taskEngine.stopTask();
-                        break;
-                    case ACTION_TYPES.CANCEL:
-                        this.taskEngine.cancelTask();
-                        break;
-                    case ACTION_TYPES.RESTART:
-                        this.taskEngine.restartTask();
-                        break;
-                    default:
-                        break;
-                }
-            } catch (error) {
-                console.error("UPDATED", "no action");
-            }
-        });
 
-        this.taskRepository.on("CREATED", (updatedModel) => {
-            const { _id: id, name, status, state, dependencies } = updatedModel;
-            logger.debug(
-                `Task CREATED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
-                {
-                    id,
-                    name,
-                    status,
-                    state,
+                const actionHandlers = {
+                    [ACTION_TYPES.START]: () => this.taskEngine.start(id),
+                    [ACTION_TYPES.PAUSE]: () => this.taskEngine.pauseTask(id),
+                    [ACTION_TYPES.RESUME]: () => this.taskEngine.resumeTask(id),
+                    [ACTION_TYPES.STOP]: () => this.taskEngine.stopTask(id),
+                    [ACTION_TYPES.CANCEL]: () => this.taskEngine.cancelTask(id),
+                    [ACTION_TYPES.RESTART]: () => this.taskEngine.restartTask(id),
+                };
+
+                if (actionHandlers[lastActionType]) {
+                    actionHandlers[lastActionType]();
                 }
-            );
-            const dependenciesArray = dependencies.map((task) => task._id.toString());
-            this.taskEngine.createTask({
-                id,
-                name,
-                priority: 1,
-                maxAttempts: 3,
-                dependencies: dependenciesArray,
             });
         });
 
-        this.taskRepository.on("DELETED", (updatedModel) => {
-            const { _id: id, name, status, state } = updatedModel;
-            logger.debug(
-                `Task DELETED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
-                {
+        this.taskRepository.on("CREATED", async (updatedModel) => {
+            const { _id: id, name, status, state, dependencies } = updatedModel;
+            this.safeExecute(async () => {
+                logger.debug(
+                    `Task CREATED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
+                    { id, name, status, state }
+                );
+                const dependenciesArray = dependencies.map((task) =>
+                    task._id.toString()
+                );
+                this.taskEngine.createTask({
                     id,
                     name,
-                    status,
-                    state,
-                }
-            );
+                    priority: 1,
+                    maxAttempts: 3,
+                    dependencies: dependenciesArray,
+                });
+            });
+        });
+
+        this.taskRepository.on("DELETED", async (updatedModel) => {
+            const { _id: id, name, status, state } = updatedModel;
+            this.safeExecute(async () => {
+                logger.debug(
+                    `Task DELETED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
+                    { id, name, status, state }
+                );
+            });
         });
 
         for (const state of Object.values(TASK_STATES)) {
-            this.taskEngine.on(state, ({ id, name }) => {
-                const model = this.getById(id);
-                model.state = state;
-                this.update(id, model);
+            this.taskEngine.on(state, async ({ id, name }) => {
+                this.safeExecute(async () => {
+                    const model = await this.getById(id);
+                    model.state = state;
+                    await this.update(id, model);
+                });
             });
         }
-
-        this.taskEngine.on(TASK_STATES.COMPLETED, (task) =>
-            console.log(`🎉 Event        [${task.id}] ${task.name} is SUCCESS`)
-        );
-        this.taskEngine.on(TASK_STATES.FAILED, (task) =>
-            console.log(`⚠️ Event        [${task.id}] ${task.name} is FAILED`)
-        );
-        this.taskEngine.on(TASK_STATES.CANCELLED, (task) =>
-            console.log(`🚫 Event        [${task.id}] ${task.name} is CANCELLED`)
-        );
     };
 
     create = async (model) => {
-        model.headers = generateHeaders("Task");
-        return await this.taskRepository.create(model);
+        return await this.safeExecute(async () => {
+            model.headers = generateHeaders("Task");
+            return await this.taskRepository.create(model);
+        });
     };
 
     update = async (id, model) => {
-        return await this.taskRepository.update(id, model);
+        return await this.safeExecute(async () =>
+            this.taskRepository.update(id, model)
+        );
     };
 
     deleteById = async (id) => {
-        return await this.taskRepository.deleteById(id);
+        return await this.safeExecute(async () =>
+            this.taskRepository.deleteById(id)
+        );
     };
 
     getById = async (id) => {
-        return await this.taskRepository.getById(id);
+        return await this.safeExecute(async () => this.taskRepository.getById(id));
     };
 
     getAll = async () => {
-        return await this.taskRepository.getAll();
+        return await this.safeExecute(async () => this.taskRepository.getAll());
     };
 }
 
-const createTaskMethod = async (name, action, status, state) => {
+const createTaskMethod = (name, action, status, state) => {
     TaskService.prototype[name] = async function (id) {
-        const model = await this.getById(id);
+        return await this.safeExecute(async () => {
+            const model = await this.getById(id);
 
-        model.actions.push({
-            type: action,
-            timestamp: new Date(),
+            model.actions.push({
+                type: action,
+                timestamp: new Date(),
+            });
+
+            model.status = status;
+            model.state = state;
+
+            return await this.update(id, model);
         });
-
-        model.status = status;
-        model.state = state;
-
-        const updatedModel = await this.update(model.id, model);
-
-        return updatedModel;
     };
 };
 
