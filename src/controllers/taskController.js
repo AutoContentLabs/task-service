@@ -8,7 +8,7 @@ class TaskController extends EventEmitter {
     constructor(taskService) {
         super();
 
-        if (TaskController.instance) {          
+        if (TaskController.instance) {
             return TaskController.instance;
         }
 
@@ -110,6 +110,22 @@ class TaskController extends EventEmitter {
             res.status(200).json({ message: "restart successfully", model });
         } catch (error) {
             res.status(500).json({ error: error.message });
+        }
+    }
+
+    updates = async (req, res) => {
+        try {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            req.on('close', () => {
+                res.end();
+            });
+            this.taskService.on('UPDATED', async (task) => {
+                res.write(`data: ${JSON.stringify(task)}\n\n`);
+            });
+        } catch (error) {
+            res.write(`data: ${JSON.stringify(error)}\n\n`);
         }
     }
 }

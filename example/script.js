@@ -258,24 +258,25 @@ const fillTaskDependencies = async () => {
     }
 };
 
-// // Handle real-time task updates via Server-Sent Events (SSE)
-// const eventSource = new EventSource("http://localhost:53100/api/tasks/updates");
-// eventSource.onmessage = (event) => {
-//     const updatedTask = JSON.parse(event.data);
-//     // Update the task in the UI based on the updated task data
-//     updateTaskInUI(updatedTask);
-// };
+// Handle real-time task updates via Server-Sent Events (SSE)
+const eventSource = new EventSource("http://localhost:53100/api/tasks-updates");
+eventSource.onmessage = (event) => {
+    const updatedTask = JSON.parse(event.data);
+    // Update the task in the UI based on the updated task data
+    updateTaskInUI(updatedTask);
+};
 
-// // Function to update the task in the UI
-// const updateTaskInUI = (task) => {
-//     const taskList = document.getElementById("taskList");
-//     const taskItem = taskList.querySelector(`li[data-task-id='${task._id}']`);
-//     if (taskItem) {
-//         taskItem.querySelector(".state").textContent = task.state;
-//         taskItem.querySelector(".status").textContent = task.status;
-//         taskItem.className = getTaskClass(task.state);
-//     }
-// };
+// Function to update the task in the UI
+const updateTaskInUI = (task) => {
+ 
+    const taskList = document.getElementById("taskList");
+    const taskItem = taskList.querySelector(`li[data-task-id='${task._id}']`);
+    if (taskItem) {
+        taskItem.querySelector(".state").textContent = task.state;
+        taskItem.querySelector(".status").textContent = task.status;
+        taskItem.className = getTaskClass(task.state);
+    }
+};
 
 // Utility function to determine task class based on state
 const getTaskClass = (state) => {

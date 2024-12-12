@@ -37,6 +37,7 @@ class TaskService extends EventEmitter {
     watch = async () => {
         this.taskRepository.on("UPDATED", async (updatedModel) => {
             const { _id: id, name, status, state, actions } = updatedModel;
+            this.emit("UPDATED", updatedModel)
             this.safeExecute(async () => {
                 const lastActionType = actions[actions.length - 1]?.type;
                 logger.debug(

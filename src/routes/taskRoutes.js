@@ -22,6 +22,7 @@ try {
         pause,
         resume,
         restart,
+        updates
     } = taskController;
 
     router.post("/tasks", create);
@@ -35,6 +36,8 @@ try {
     router.post("/tasks/:id/pause", pause);
     router.post("/tasks/:id/resume", resume);
     router.post("/tasks/:id/restart", restart);
+
+    router.get("/tasks-updates", updates);
 } catch (error) {
     console.error("router", error);
 }
