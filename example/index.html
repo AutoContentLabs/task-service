@@ -21,13 +21,27 @@
 
         <label for="taskDependencies">Dependencies:</label>
         <select id="taskDependencies" name="taskDependencies" multiple>
-         
+          <!-- Tasks will be populated dynamically here -->
         </select>
 
         <button type="submit">Create Task</button>
       </form>
 
       <div id="createTaskStatus"></div>
+
+      <!-- Filter Tasks -->
+      <div>
+        <label for="taskFilter">Filter by state:</label>
+        <select id="taskFilter">
+          <option value="all">All</option>
+          <option value="running">Running</option>
+          <option value="paused">Paused</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loadingIndicator" style="display:none;">Loading...</div>
 
       <!-- Task Actions -->
       <h2>Actions</h2>
@@ -38,6 +52,7 @@
       <!-- Buttons for fetching tasks -->
       <button id="getTasksBtn">Get Tasks</button>
     </div>
+
     <script src="types.js"></script>
     <script src="script.js"></script>
   </body>
