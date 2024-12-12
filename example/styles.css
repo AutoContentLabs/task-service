@@ -112,23 +112,25 @@ button.delete-btn:hover {
 }
 
 .task-list li {
-  background: #726f6f;
-  color: #fff;
+  background: #fff;
+  border-left: 8px solid #726f6f;
+  color: #333;
   padding: 15px;
   margin-bottom: 10px;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .task-list li .task-name {
   font-weight: bold;
+  font-size: 1rem;
 }
 
 .task-list li .task-state {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   padding: 5px 10px;
   border-radius: 12px;
 }
@@ -152,24 +154,44 @@ button.delete-btn:hover {
 }
 
 /* Task States */
-.task-in-progress {
-  background-color: #f0ad4e;
-  color: #fff;
-}
-
-.task-completed {
-  background-color: #5bc0de;
-  color: #fff;
-}
-
-.task-paused {
+.task-idle {
   background-color: #6c757d;
+  color: #fff;
+}
+
+.task-started {
+  background-color: #28a745;
   color: #fff;
 }
 
 .task-stopped {
   background-color: #dc3545;
   color: #fff;
+}
+
+.task-paused {
+  background-color: #f0ad4e;
+  color: #fff;
+}
+
+.task-resumed {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.task-restarted {
+  background-color: #17a2b8;
+  color: #fff;
+}
+
+.task-cancelled {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.task-scheduled {
+  background-color: #ffc107;
+  color: #333;
 }
 
 /* Responsive Design */
