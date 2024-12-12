@@ -253,4 +253,4 @@ document.getElementById("getTasksBtn").addEventListener("click", () => {
 });
 
 // Listen to Live Task Updates (via EventSource)
-listenToTaskUpdates();
+listenToTaskUpdates(); 

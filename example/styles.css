@@ -7,7 +7,7 @@
 
 /* Body Styling */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   background-color: #f4f4f9;
   color: #333;
 }
@@ -18,10 +18,12 @@ body {
   background-color: #726f6f;
   padding: 20px;
   color: #fff;
+  font-size: 1.8rem;
 }
 
 h1, h2 {
   margin-bottom: 10px;
+  font-size: 1.5rem;
 }
 
 /* Main Container */
@@ -37,7 +39,7 @@ h1, h2 {
 .box {
   flex: 1 1 300px;
   background: #fff;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -45,17 +47,19 @@ h1, h2 {
 /* Task Create Form */
 .task-create .form label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: bold;
+  font-size: 0.9rem;
 }
 
 .task-create .form input[type="text"], 
 .task-create .form select {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
+  padding: 8px;
+  margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-size: 0.9rem;
 }
 
 button {
@@ -65,6 +69,7 @@ button {
   color: white;
   border: none;
   border-radius: 4px;
+  font-size: 1rem;
   transition: background-color 0.3s;
 }
 
@@ -88,14 +93,16 @@ button.delete-btn:hover {
 /* Filter Tasks */
 .task-filter label {
   font-weight: bold;
+  font-size: 0.9rem;
 }
 
 .task-filter select {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
+  padding: 8px;
+  margin-top: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-size: 0.9rem;
 }
 
 /* Task List */
@@ -113,18 +120,32 @@ button.delete-btn:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 1rem;
 }
 
-.actions button {
-  display: block;
-  width: 100%;
-  margin-top: 10px;
+.task-list li .task-name {
+  font-weight: bold;
+}
+
+.task-list li .task-state {
+  font-size: 0.85rem;
+  padding: 5px 10px;
+  border-radius: 12px;
+}
+
+.actions-container {
+  display: flex;
+  gap: 10px;
+}
+
+.actions-container button {
+  font-size: 0.85rem;
 }
 
 /* Loading Indicator */
 #loadingIndicator {
   text-align: center;
-  font-size: 18px;
+  font-size: 0.95rem;
   color: #007bff;
   font-weight: bold;
   margin-top: 20px;
