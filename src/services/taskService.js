@@ -65,7 +65,7 @@ class TaskService extends EventEmitter {
                         break;
                 }
             } catch (error) {
-                console.error("UPDATED", "no action")
+                console.error("UPDATED", "no action");
             }
         });
 
@@ -112,13 +112,13 @@ class TaskService extends EventEmitter {
         }
 
         this.taskEngine.on(TASK_STATES.COMPLETED, (task) =>
-            console.log(`🎉 Event: Task [${task.id}] ${task.name} SUCCESS`)
+            console.log(`🎉 Event        [${task.id}] ${task.name} is SUCCESS`)
         );
         this.taskEngine.on(TASK_STATES.FAILED, (task) =>
-            console.log(`⚠️ Event: Task [${task.id}] ${task.name} FAILED`)
+            console.log(`⚠️ Event        [${task.id}] ${task.name} is FAILED`)
         );
         this.taskEngine.on(TASK_STATES.CANCELLED, (task) =>
-            console.log(`🚫 Event: Task [${task.id}] ${task.name} CANCELLED`)
+            console.log(`🚫 Event        [${task.id}] ${task.name} is CANCELLED`)
         );
     };
 
