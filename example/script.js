@@ -146,7 +146,7 @@ const checkTaskStatus = async (taskId) => {
             clearInterval(interval); // Stop checking after completion or 10 attempts
             getTasks(); // Refresh the task list after task completion
         }
-    }, 500); // Check every 1/2 seconds
+    }, 5000); // Check every 5 seconds
 };
 
 // Start Task
@@ -255,6 +255,41 @@ const fillTaskDependencies = async () => {
         });
     } catch (error) {
         console.error("Error fetching tasks for dependencies:", error);
+    }
+};
+
+// // Handle real-time task updates via Server-Sent Events (SSE)
+// const eventSource = new EventSource("http://localhost:53100/api/tasks/updates");
+// eventSource.onmessage = (event) => {
+//     const updatedTask = JSON.parse(event.data);
+//     // Update the task in the UI based on the updated task data
+//     updateTaskInUI(updatedTask);
+// };
+
+// // Function to update the task in the UI
+// const updateTaskInUI = (task) => {
+//     const taskList = document.getElementById("taskList");
+//     const taskItem = taskList.querySelector(`li[data-task-id='${task._id}']`);
+//     if (taskItem) {
+//         taskItem.querySelector(".state").textContent = task.state;
+//         taskItem.querySelector(".status").textContent = task.status;
+//         taskItem.className = getTaskClass(task.state);
+//     }
+// };
+
+// Utility function to determine task class based on state
+const getTaskClass = (state) => {
+    switch (state) {
+        case TASK_STATES.RUNNING:
+            return "task-in-progress";
+        case TASK_STATES.PAUSED:
+            return "task-paused";
+        case TASK_STATES.COMPLETED:
+            return "task-completed";
+        case TASK_STATES.STOPPED:
+            return "task-stopped";
+        default:
+            return "";
     }
 };
 

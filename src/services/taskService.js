@@ -30,7 +30,7 @@ class TaskService extends EventEmitter {
         try {
             return await fn();
         } catch (error) {
-            logger.error("Error executing function", { error });
+            logger.error("Error executing function", error);
         }
     }
 
