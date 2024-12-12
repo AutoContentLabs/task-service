@@ -96,7 +96,7 @@ class TaskEngine extends EventEmitter {
             } else {
                 this.failTask(task);
             }
-        }, task.duration || 1000);
+        }, task.duration || 5000);
     }
 
     // 📌 Complete Task
