@@ -29,39 +29,43 @@ class TaskService extends EventEmitter {
     watch = async () => {
         this.taskRepository.on("UPDATED", (updatedModel) => {
             const { _id: id, name, status, state, actions } = updatedModel;
-            const lastActionType = actions[actions.length - 1].type;
-            logger.debug(
-                `REPO UPDATED - id: ${id} action: ${lastActionType} - name: ${name} - status: ${status} - state: ${state}`,
-                {
-                    id,
-                    name,
-                    status,
-                    state,
-                    action: lastActionType,
-                }
-            );
-            switch (lastActionType) {
-                case ACTION_TYPES.START:
-                    this.taskEngine.start();
-                    break;
-                case ACTION_TYPES.PAUSE:
-                    this.taskEngine.pauseTask();
-                    break;
-                case ACTION_TYPES.RESUME:
-                    this.taskEngine.resumeTask();
-                    break;
-                case ACTION_TYPES.STOP:
-                    this.taskEngine.stopTask();
-                    break;
-                case "CANCEL":
-                    this.taskEngine.cancelTask();
-                    break;
-                case ACTION_TYPES.RESTART:
-                    this.taskEngine.restartTask();
-                    break;
+            try {
+                const lastActionType = actions[actions.length - 1].type;
+                logger.debug(
+                    `REPO UPDATED - id: ${id} action: ${lastActionType} - name: ${name} - status: ${status} - state: ${state}`,
+                    {
+                        id,
+                        name,
+                        status,
+                        state,
+                        action: lastActionType,
+                    }
+                );
+                switch (lastActionType) {
+                    case ACTION_TYPES.START:
+                        this.taskEngine.start();
+                        break;
+                    case ACTION_TYPES.PAUSE:
+                        this.taskEngine.pauseTask();
+                        break;
+                    case ACTION_TYPES.RESUME:
+                        this.taskEngine.resumeTask();
+                        break;
+                    case ACTION_TYPES.STOP:
+                        this.taskEngine.stopTask();
+                        break;
+                    case "CANCEL":
+                        this.taskEngine.cancelTask();
+                        break;
+                    case ACTION_TYPES.RESTART:
+                        this.taskEngine.restartTask();
+                        break;
 
-                default:
-                    break;
+                    default:
+                        break;
+                }
+            } catch (error) {
+                console.error("UPDATED", "no action")
             }
         });
 
@@ -99,14 +103,22 @@ class TaskService extends EventEmitter {
             );
         });
 
-        this.taskEngine.on("taskSuccess", (task) =>
-            console.log(`🎉 Event: Task [${task.id}] SUCCESS`)
+        for (const state of Object.values(TASK_STATES)) {
+            this.taskEngine.on(state, ({ id, name }) => {
+                const model = this.getById(id);
+                model.state = state;
+                this.update(id, model);
+            });
+        }
+
+        this.taskEngine.on(TASK_STATES.COMPLETED, (task) =>
+            console.log(`🎉 Event: Task [${task.id}] ${task.name} SUCCESS`)
         );
-        this.taskEngine.on("taskFailed", (task) =>
-            console.log(`⚠️ Event: Task [${task.id}] FAILED`)
+        this.taskEngine.on(TASK_STATES.FAILED, (task) =>
+            console.log(`⚠️ Event: Task [${task.id}] ${task.name} FAILED`)
         );
-        this.taskEngine.on("taskCancelled", (task) =>
-            console.log(`🚫 Event: Task [${task.id}] CANCELLED`)
+        this.taskEngine.on(TASK_STATES.CANCELLED, (task) =>
+            console.log(`🚫 Event: Task [${task.id}] ${task.name} CANCELLED`)
         );
     };
 

@@ -1,27 +1,27 @@
 const EventEmitter = require("events");
-
+const { TASK_STATES } = require("../models/mongoModel");
 class TaskEngine extends EventEmitter {
     constructor() {
         super();
-        this.tasks = new Map(); // Tüm görevler
-        this.runningTasks = new Set(); // Çalışan görevler
+        this.tasks = new Map();
+        this.runningTasks = new Set();
     }
 
     // 📌 Create Task
     createTask(task) {
         if (!task.id) throw new Error("Task must have an id");
-        task.status = "PENDING";
+        task.status = TASK_STATES.WAITING;
         task.attempts = 0;
         task.priority = task.priority || 0;
         this.tasks.set(task.id, task);
-        console.log(`🟢 Task [${task.id}] created`);
+        console.log(`🟢 Task [${task.id}] ${task.name} created`);
         return task;
     }
 
     // 📌 Update Task
     updateTask(taskId, updates) {
         const task = this.tasks.get(taskId);
-        if (!task) throw new Error(`Task [${taskId}] not found`);
+        if (!task) throw new Error(`Task [${taskId}] ${task.name} not found`);
         Object.assign(task, updates);
         console.log(`🟡 Task [${taskId}] updated`);
         return task;
@@ -30,9 +30,9 @@ class TaskEngine extends EventEmitter {
     // 📌 Delete Task
     deleteTask(taskId) {
         if (this.tasks.delete(taskId)) {
-            console.log(`🗑️ Task [${taskId}] deleted`);
+            console.log(`🗑️ Task [${taskId}] ${task.name} deleted`);
         } else {
-            console.warn(`Task [${taskId}] not found`);
+            console.warn(`Task [${taskId}] ${task.name} not found`);
         }
     }
 
@@ -44,7 +44,9 @@ class TaskEngine extends EventEmitter {
     // 📌 Run Available Tasks
     runAvailableTasks() {
         const availableTasks = Array.from(this.tasks.values())
-            .filter((task) => task.status === "PENDING" && this.canRunTask(task))
+            .filter(
+                (task) => task.status === TASK_STATES.WAITING && this.canRunTask(task)
+            )
             .sort((a, b) => b.priority - a.priority);
 
         availableTasks.forEach((task) => this.runTask(task));
@@ -57,16 +59,16 @@ class TaskEngine extends EventEmitter {
         return task.dependencies.every((depId) => {
             const depTask = this.tasks.get(depId);
 
-            return depTask && depTask.status === "SUCCESS";
+            return depTask && depTask.status === TASK_STATES.COMPLETED;
         });
     }
 
     // 📌 Run a task
     runTask(task) {
-        if (task.status !== "PENDING") return;
-        task.status = "RUNNING";
+        if (task.status !== TASK_STATES.WAITING) return;
+        task.status = TASK_STATES.RUNNING;
         this.runningTasks.add(task.id);
-        console.log(`🔷 Task [${task.id}] ${task.name}]is RUNNING...`);
+        console.log(`🔷 Task [${task.id}] ${task.name}] is RUNNING...`);
 
         setTimeout(() => {
             const isSuccess = Math.random() > 0.3;
@@ -80,10 +82,10 @@ class TaskEngine extends EventEmitter {
 
     // 📌 Complete Task
     completeTask(task) {
-        task.status = "SUCCESS";
+        task.status = TASK_STATES.COMPLETED;
         this.runningTasks.delete(task.id);
-        console.log(`✅ Task [${task.id}] is SUCCESS`);
-        this.emit("taskSuccess", task);
+        console.log(`✅ Task [${task.id}] ${task.name} is SUCCESS`);
+        this.emit(TASK_STATES.COMPLETED, task);
         this.runAvailableTasks();
     }
 
@@ -91,12 +93,12 @@ class TaskEngine extends EventEmitter {
     failTask(task) {
         task.attempts++;
         if (task.attempts >= task.maxAttempts) {
-            task.status = "FAILED";
-            this.emit("taskFailed", task);
+            task.status = TASK_STATES.FAILED;
+            this.emit(TASK_STATES.FAILED, task);
         } else {
-            console.log(`🔁 Retrying Task [${task.id}]...`);
+            console.log(`🔁 Retrying Task [${task.id}] ${task.name}...`);
             setTimeout(() => {
-                task.status = "PENDING";
+                task.status = TASK_STATES.WAITING;
                 this.runTask(task);
             }, 2000);
         }
@@ -105,27 +107,27 @@ class TaskEngine extends EventEmitter {
     // 📌 Stop Task
     stopTask(taskId) {
         const task = this.tasks.get(taskId);
-        if (task && task.status === "RUNNING") {
-            task.status = "STOPPED";
-            console.log(`⏹️ Task [${taskId}] stopped`);
+        if (task && task.status === TASK_STATES.RUNNING) {
+            task.status = TASK_STATES.STOPPED;
+            console.log(`⏹️ Task [${taskId}] ${task.name} stopped`);
         }
     }
 
     // 📌 Pause Task
     pauseTask(taskId) {
         const task = this.tasks.get(taskId);
-        if (task && task.status === "RUNNING") {
-            task.status = "PAUSED";
-            console.log(`⏸️ Task [${taskId}] paused`);
+        if (task && task.status === TASK_STATES.RUNNING) {
+            task.status = TASK_STATES.PAUSED;
+            console.log(`⏸️ Task [${taskId}] ${task.name} paused`);
         }
     }
 
     // 📌 Resume Task
     resumeTask(taskId) {
         const task = this.tasks.get(taskId);
-        if (task && task.status === "PAUSED") {
-            task.status = "RUNNING";
-            console.log(`▶️ Task [${taskId}] resumed`);
+        if (task && task.status === TASK_STATES.PAUSED) {
+            task.status = TASK_STATES.RUNNING;
+            console.log(`▶️ Task [${taskId}] ${task.name} resumed`);
             this.runTask(task);
         }
     }
@@ -134,9 +136,9 @@ class TaskEngine extends EventEmitter {
     restartTask(taskId) {
         const task = this.tasks.get(taskId);
         if (task) {
-            task.status = "PENDING";
+            task.status = TASK_STATES.WAITING;
             task.attempts = 0;
-            console.log(`🔄 Task [${taskId}] restarted`);
+            console.log(`🔄 Task [${taskId}] ${task.name} restarted`);
             this.runTask(task);
         }
     }
@@ -144,11 +146,11 @@ class TaskEngine extends EventEmitter {
     // 📌 Cancel Task
     cancelTask(taskId) {
         const task = this.tasks.get(taskId);
-        if (task && task.status === "RUNNING") {
-            task.status = "CANCELLED";
+        if (task && task.status === TASK_STATES.RUNNING) {
+            task.status = TASK_STATES.CANCELLED;
             this.runningTasks.delete(task.id);
-            console.log(`🚫 Task [${taskId}] cancelled`);
-            this.emit("taskCancelled", task);
+            console.log(`🚫 Task [${taskId}] ${task.name} cancelled`);
+            this.emit(TASK_STATES.CANCELLED, task);
         }
     }
 
