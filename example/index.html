@@ -13,10 +13,17 @@
       <!-- Task Create Form -->
       <h2>Create Task</h2>
       <form id="createTaskForm">
-        <label for="taskName">Task Name</label>
-        <input type="text" id="taskName" required /><br /><br />
-        <label for="taskDescription">Description</label>
-        <input type="text" id="taskDescription" /><br /><br />
+        <label for="taskName">Task Name:</label>
+        <input type="text" id="taskName" name="taskName" required />
+
+        <label for="taskDescription">Task Description:</label>
+        <input type="text" id="taskDescription" name="taskDescription" />
+
+        <label for="taskDependencies">Dependencies:</label>
+        <select id="taskDependencies" name="taskDependencies" multiple>
+         
+        </select>
+
         <button type="submit">Create Task</button>
       </form>
 
@@ -24,7 +31,9 @@
 
       <!-- Task Actions -->
       <h2>Actions</h2>
-      <div class="task-list" id="taskList"></div>
+      <div class="task-list">
+        <ul id="taskList"></ul>
+      </div>
 
       <!-- Buttons for fetching tasks -->
       <button id="getTasksBtn">Get Tasks</button>

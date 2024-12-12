@@ -7,6 +7,11 @@ createTaskForm.addEventListener("submit", async (event) => {
 
     const taskName = document.getElementById("taskName").value;
     const taskDescription = document.getElementById("taskDescription").value;
+    const selectedDependencies = Array.from(
+        document.getElementById("taskDependencies").options
+    )
+        .filter((option) => option.selected)
+        .map((option) => option.value);
 
     const task = {
         name: taskName,
@@ -14,6 +19,7 @@ createTaskForm.addEventListener("submit", async (event) => {
         type: TASK_TYPES.TASK, // Default to task type
         state: TASK_STATES.IDLE, // Default to idle state
         status: TASK_STATUSES.IDLE, // Default to idle status
+        dependencies: selectedDependencies, // Add selected dependencies
     };
 
     try {
@@ -26,6 +32,7 @@ createTaskForm.addEventListener("submit", async (event) => {
         const data = await response.json();
         if (response.ok) {
             getTasks(); // Refresh the task list
+            fillTaskDependencies(); // Refresh the dependencies list
         } else {
             console.error("Error creating task:", data);
         }
@@ -45,6 +52,7 @@ const deleteTask = async (taskId) => {
             if (response.status === 204) {
                 alert("Task deleted successfully.");
                 getTasks();
+                fillTaskDependencies(); // Refresh the dependencies list
             } else {
                 const data = await response.json();
                 alert("Error: " + data.error);
@@ -105,12 +113,18 @@ const getTasks = async () => {
                 <strong class="state">${task.state}</strong>
                 <strong class="status">${task.status}</strong>
                 <div class="actions-container">
-                    <button onclick="startTask('${task._id}')" ${startDisabled ? "disabled" : ""}>Start</button>
-                    <button onclick="pauseTask('${task._id}')" ${pauseDisabled ? "disabled" : ""}>Pause</button>
-                    <button onclick="stopTask('${task._id}')" ${stopDisabled ? "disabled" : ""}>Stop</button>
-                    <button onclick="resumeTask('${task._id}')" ${resumeDisabled ? "disabled" : ""}>Resume</button>
-                    <button onclick="restartTask('${task._id}')">Restart</button>
-                    <button onclick="deleteTask('${task._id}')" class="delete-btn">Delete</button>
+                    <button onclick="startTask('${task._id}')" ${startDisabled ? "disabled" : ""
+                }>Start</button>
+                    <button onclick="pauseTask('${task._id}')" ${pauseDisabled ? "disabled" : ""
+                }>Pause</button>
+                    <button onclick="stopTask('${task._id}')" ${stopDisabled ? "disabled" : ""
+                }>Stop</button>
+                    <button onclick="resumeTask('${task._id}')" ${resumeDisabled ? "disabled" : ""
+                }>Resume</button>
+                    <button onclick="restartTask('${task._id
+                }')">Restart</button>
+                    <button onclick="deleteTask('${task._id
+                }')" class="delete-btn">Delete</button>
                 </div>
             `;
             taskList.appendChild(listItem);
@@ -225,5 +239,25 @@ const restartTask = async (taskId) => {
     }
 };
 
-// Get tasks initially when the page loads
+// Fill the task dependencies select
+const fillTaskDependencies = async () => {
+    try {
+        const response = await fetch(apiUrl);
+        const tasks = await response.json();
+        const taskDependencies = document.getElementById("taskDependencies");
+        taskDependencies.innerHTML = ""; // Clear the list
+
+        tasks.forEach((task) => {
+            const option = document.createElement("option");
+            option.value = task._id;
+            option.text = task.name;
+            taskDependencies.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error fetching tasks for dependencies:", error);
+    }
+};
+
+// Initial tasks and dependencies load
 getTasks();
+fillTaskDependencies();
