@@ -1,11 +1,18 @@
 const EventEmitter = require("events");
 const { TASK_STATES } = require("../models/mongoModel");
-
-class TaskEngine extends EventEmitter {
+const TaskExecutor = require("./taskExecuter")
+module.exports = class TaskEngine extends EventEmitter {
     constructor() {
         super();
+
+        if (TaskEngine.instance) {
+            return TaskEngine.instance;
+        }
+
+        TaskEngine.instance = this;
         this.tasks = new Map();
         this.runningTasks = new Set();
+        this.executer = new TaskExecutor()
     }
 
     // 📌 Create Task
@@ -101,12 +108,20 @@ class TaskEngine extends EventEmitter {
 
     // 📌 Task Execution Logic
     executeTaskLogic(task) {
-        // Place the real business logic of the task here.
-        // For example: interacting with APIs, processing data, etc.
+
         console.log(`🔄 Executing logic for Task [${task.id}] ${task.name}`);
 
-        // Placeholder: success or failure simulation (replace with actual logic)
-        return Math.random() > 0.3; // 70% chance to succeed
+        let isSuccess = false;
+
+        try {
+            // business logic
+            this.executer.execute(task)
+            isSuccess = true
+        } catch (error) {
+            isSuccess = false
+        }
+
+        return isSuccess
     }
 
     // 📌 Complete Task
@@ -215,5 +230,3 @@ class TaskEngine extends EventEmitter {
         );
     }
 }
-
-module.exports = TaskEngine;

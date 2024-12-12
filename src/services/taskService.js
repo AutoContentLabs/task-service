@@ -35,7 +35,6 @@ class TaskService extends EventEmitter {
     }
 
     watch = async () => {
-        // Dinleme işlemleri ve olay tetikleyiciler burada
         this.taskRepository.on("UPDATED", async (updatedModel) => {
             const { _id: id, name, status, state, actions } = updatedModel;
             this.emit("UPDATED", updatedModel);
@@ -62,7 +61,17 @@ class TaskService extends EventEmitter {
         });
 
         this.taskRepository.on("CREATED", async (updatedModel) => {
-            const { _id: id, name, status, state, dependencies } = updatedModel;
+            const {
+                _id: id,
+                name,
+                status,
+                state,
+                dependencies,
+                on_start,
+                on_success,
+                on_failure,
+                type
+            } = updatedModel;
             this.safeExecute(async () => {
                 logger.debug(
                     `Task CREATED - id: ${id} name: ${name} - status: ${status} - state: ${state}`,
@@ -77,6 +86,10 @@ class TaskService extends EventEmitter {
                     priority: 1,
                     maxAttempts: 3,
                     dependencies: dependenciesArray,
+                    on_start,
+                    on_success,
+                    on_failure,
+                    type
                 });
             });
         });
@@ -148,7 +161,6 @@ const createTaskMethod = (name, action, status, state) => {
     };
 };
 
-// Task durumları için fonksiyonlar oluşturuluyor
 createTaskMethod(
     "start",
     ACTION_TYPES.START,
