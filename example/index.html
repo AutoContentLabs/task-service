@@ -22,6 +22,18 @@
           <label for="taskDescription">Task Description:</label>
           <input type="text" id="taskDescription" name="taskDescription" />
 
+          <label for="taskType">Task Type:</label>
+          <select id="taskType" name="taskType" required>
+            <option value="TASK">TASK</option>
+            <option value="WORKFLOW">WORKFLOW</option>
+            <option value="PIPELINE">PIPELINE</option>
+            <option value="DAG">DAG</option>
+            <option value="LINEAR">LINEAR</option>
+            <option value="SERVICE">SERVICE</option>
+            <option value="FUNCTION">FUNCTION</option>
+            <option value="ACTION">ACTION</option>
+          </select>
+
           <label for="taskDependencies">Dependencies:</label>
           <select id="taskDependencies" name="taskDependencies" multiple>
             <!-- Tasks will be populated dynamically here -->

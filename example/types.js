@@ -1,3 +1,4 @@
+// example\types.js
 const TASK_TYPES = Object.freeze({
     TASK: "TASK",
     WORKFLOW: "WORKFLOW",

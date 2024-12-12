@@ -28,6 +28,7 @@ const getTasks = async (filter = "all") => {
         listItem.innerHTML = `
           <strong class="name">${task.name}</strong>
           <strong class="state">${task.state}</strong>
+          <div class="task-type">Type: ${task.type}</div>
           <div class="actions-container">
             <button onclick="startTask('${task._id}')">Start</button>
             <button onclick="pauseTask('${task._id}')">Pause</button>
@@ -60,6 +61,7 @@ const listenToTaskUpdates = () => {
     if (taskItem) {
       // Update task state in the UI
       taskItem.querySelector(".state").textContent = taskUpdate.state;
+      taskItem.querySelector(".task-type").textContent = `Type: ${taskUpdate.type}`;
       taskItem.classList.remove("task-in-progress", "task-paused", "task-completed", "task-stopped");
 
       // Apply the correct class based on the state
@@ -79,6 +81,7 @@ const listenToTaskUpdates = () => {
       listItem.innerHTML = `
         <strong class="name">${taskUpdate.name}</strong>
         <strong class="state">${taskUpdate.state}</strong>
+        <div class="task-type">Type: ${taskUpdate.type}</div>
         <div class="actions-container">
           <button onclick="startTask('${taskUpdate._id}')">Start</button>
           <button onclick="pauseTask('${taskUpdate._id}')">Pause</button>
@@ -104,6 +107,7 @@ createTaskForm.addEventListener("submit", async (event) => {
 
   const taskName = document.getElementById("taskName").value;
   const taskDescription = document.getElementById("taskDescription").value;
+  const taskType = document.getElementById("taskType").value;
   const selectedDependencies = Array.from(
     document.getElementById("taskDependencies").options
   )
@@ -118,6 +122,7 @@ createTaskForm.addEventListener("submit", async (event) => {
   const task = {
     name: taskName,
     description: taskDescription,
+    type: taskType,
     dependencies: selectedDependencies,
   };
 
@@ -162,8 +167,8 @@ const fillTaskDependencies = async () => {
 // Filter Tasks
 const taskFilter = document.getElementById("taskFilter");
 taskFilter.addEventListener("change", (event) => {
-  const filter = event.target.value;
-  getTasks(filter);
+  getTasks(event.target.value);
+
 });
 
 // Start Task
@@ -246,11 +251,10 @@ const deleteTask = async (taskId) => {
     console.error("Error deleting task:", error);
   }
 };
-// Initial Task Fetch and Dependencies Setup
-document.getElementById("getTasksBtn").addEventListener("click", () => {
-  getTasks(); // Fetch tasks
-  fillTaskDependencies(); // Fill task dependencies
-});
 
-// Listen to Live Task Updates (via EventSource)
-listenToTaskUpdates(); 
+// Initial Setup
+window.addEventListener("DOMContentLoaded", () => {
+  getTasks(); // Fetch all tasks on page load
+  fillTaskDependencies(); // Fill the task dependencies dropdown
+  listenToTaskUpdates(); // Start listening to live task updates
+});
