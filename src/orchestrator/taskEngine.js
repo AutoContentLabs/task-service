@@ -13,6 +13,7 @@ class TaskEngine extends EventEmitter {
         task.status = TASK_STATES.WAITING;
         task.attempts = 0;
         task.priority = task.priority || 0;
+        task.dependencies = task.dependencies || []; // Ensure dependencies are defined as an array
         this.tasks.set(task.id, task);
         console.log(`🟢 Task         [${task.id}] ${task.name} created`);
         return task;
@@ -30,9 +31,9 @@ class TaskEngine extends EventEmitter {
     // 📌 Delete Task
     deleteTask(taskId) {
         if (this.tasks.delete(taskId)) {
-            console.log(`🗑️ Task       [${taskId}] ${task.name} deleted`);
+            console.log(`🗑️ Task       [${taskId}] deleted`);
         } else {
-            console.warn(`Task         [${taskId}] ${task.name} not found`);
+            console.warn(`Task         [${taskId}] not found`);
         }
     }
 
@@ -54,13 +55,31 @@ class TaskEngine extends EventEmitter {
 
     // 📌 Check if task can run
     canRunTask(task) {
-        if (!task.dependencies || task.dependencies.length === 0) return true;
+        const visited = new Set();
+        const canRun = this.resolveDependencies(task.id, visited);
+        if (!canRun) {
+            console.warn(`🔴 Circular dependency detected for Task [${task.id}]`);
+        }
+        return canRun;
+    }
 
-        return task.dependencies.every((depId) => {
+    // 📌 Resolve dependencies (handles self-dependencies and circular dependencies)
+    resolveDependencies(taskId, visited) {
+        if (visited.has(taskId)) return false; // Circular dependency detected
+        const task = this.tasks.get(taskId);
+        if (!task || !task.dependencies || task.dependencies.length === 0)
+            return true;
+
+        visited.add(taskId);
+        for (const depId of task.dependencies) {
+            if (depId === taskId) continue; // Self-dependency detected, continue execution
             const depTask = this.tasks.get(depId);
-
-            return depTask && depTask.status === TASK_STATES.COMPLETED;
-        });
+            if (!depTask || depTask.status !== TASK_STATES.COMPLETED) {
+                if (!this.resolveDependencies(depId, visited)) return false;
+            }
+        }
+        visited.delete(taskId);
+        return true;
     }
 
     // 📌 Run a task
